@@ -1,0 +1,295 @@
+/* ================= PAYMENTS PAGE (PREMIUM) ================= */
+.payments-main {
+    padding: 32px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.payments-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.payments-title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 6px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 4px;
+    margin-left: 10px;
+}
+
+.payments-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+}
+
+.payment-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.payment-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #cbd5e1;
+}
+
+.payment-card.full-width {
+    grid-column: span 2;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* UPI BOX */
+.upi-info-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    padding: 20px 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.upi-id-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    font-family: monospace;
+}
+
+.copy-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+}
+
+.qr-trigger-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fdfdfe;
+}
+
+.qr-trigger-box:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    transform: scale(1.02);
+}
+
+.qr-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.qr-hint {
+    font-size: 15px;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* QUICK TRANSFER */
+.quick-transfer-scroller {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    padding: 10px;
+    margin: -10px;
+    /* Offset the padding for scroll */
+    scrollbar-width: thin;
+}
+
+.quick-person {
+    min-width: 90px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.quick-person:hover {
+    transform: translateY(-4px);
+}
+
+.person-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: white;
+    margin: 0 auto 12px;
+    box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.3);
+    font-size: 20px;
+    border: 2px solid white;
+}
+
+.person-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.add-person-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    border: 2px dashed #94a3b8;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f8fafc;
+}
+
+.add-person-btn:hover {
+    background: #f1f5f9;
+    color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* SEND MONEY FORM */
+.transfer-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.pay-primary-btn {
+    grid-column: span 2;
+    margin-top: 10px;
+    padding: 20px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.pay-primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+}
+
+@media (max-width: 800px) {
+    .payments-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-card.full-width {
+        grid-column: span 1;
+    }
+
+    .transfer-form {
+        grid-template-columns: 1fr;
+    }
+
+    .pay-primary-btn {
+        grid-column: span 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

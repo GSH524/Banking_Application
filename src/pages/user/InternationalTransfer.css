@@ -1,0 +1,241 @@
+/* ================= INTERNATIONAL TRANSFERS ================= */
+.intl-main {
+    padding: var(--space-xl) var(--container-padding);
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.intl-title {
+    font-size: var(--fs-2xl);
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xl);
+}
+
+.intl-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+}
+
+.intl-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: var(--space-xl);
+    box-shadow: var(--card-shadow);
+}
+
+.intl-card.full-width {
+    grid-column: span 2;
+}
+
+.card-label-intl {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-lg);
+}
+
+/* CALCULATOR BOX */
+.calc-container {
+    background: #f8fafc;
+    border: 1px solid var(--divider-color);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: var(--space-lg);
+}
+
+.input-group-intl {
+    display: flex;
+    gap: 12px;
+}
+
+.amount-input-intl {
+    flex: 1;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-primary);
+    transition: border-color 0.2s;
+}
+
+.amount-input-intl:focus {
+    border-color: var(--accent-primary);
+    outline: none;
+}
+
+.currency-select-intl {
+    background: #eff6ff;
+    border: 2px solid #dbeafe;
+    border-radius: 12px;
+    padding: 0 20px;
+    font-weight: 800;
+    color: var(--accent-primary);
+    cursor: pointer;
+}
+
+.equals-divider {
+    text-align: center;
+    font-size: 24px;
+    color: #94a3b8;
+    margin: 16px 0;
+    font-weight: 700;
+}
+
+.result-box-intl {
+    text-align: center;
+}
+
+.converted-value {
+    display: block;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.converted-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.rate-info-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    font-weight: 600;
+}
+
+.initiate-btn-intl {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent-primary), #4f46e5);
+    color: white;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+}
+
+.initiate-btn-intl:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
+}
+
+/* DESTINATIONS */
+.destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: var(--space-lg);
+}
+
+.destination-item {
+    background: #f8fafc;
+    border: 1px solid var(--divider-color);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.destination-item:hover {
+    background: white;
+    border-color: var(--accent-primary);
+    transform: translateY(-3px);
+}
+
+.dest-emoji {
+    font-size: 24px;
+}
+
+.dest-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.view-all-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+/* INFO SECTION */
+.intl-info-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.intl-info-icon {
+    font-size: 48px;
+    background: #eff6ff;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.intl-info-content h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.intl-info-content p {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+    .intl-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .intl-card.full-width {
+        grid-column: span 1;
+    }
+
+    .destinations-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .intl-info-wrapper {
+        flex-direction: column;
+        text-align: center;
+    }
+}
