@@ -9,33 +9,32 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-slate-950 border-t border-white/5 pt-16 pb-8 px-6 font-sans">
+    <footer className="bg-[#020617] border-t border-white/5 pt-12 md:pt-16 pb-24 md:pb-12 px-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* TOP SECTION: Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        
+        {/* --- DESKTOP ONLY SECTION --- */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           
           {/* BRAND COLUMN */}
           <div className="space-y-6">
-            <h2 className="text-2xl font-black text-white tracking-tight">
+            <h2 className="text-2xl font-black text-white tracking-tight uppercase">
               Vajra<span className="text-indigo-500">Bank</span>
             </h2>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
               India's most trusted digital bank. Secure, seamless, and
-              designed for the modern lifestyle. Empowering your financial future.
+              designed for the modern lifestyle.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-3">
               {[
-                { icon: <FaFacebookF />, href: "https://facebook.com" },
-                { icon: <FaTwitter />, href: "https://twitter.com" },
-                { icon: <FaInstagram />, href: "https://instagram.com" },
-                { icon: <FaLinkedinIn />, href: "https://linkedin.com" },
+                { icon: <FaFacebookF size={14}/>, href: "#" },
+                { icon: <FaTwitter size={14}/>, href: "#" },
+                { icon: <FaInstagram size={14}/>, href: "#" },
+                { icon: <FaLinkedinIn size={14}/>, href: "#" },
               ].map((social, index) => (
                 <a
                   key={index}
                   href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-300"
+                  className="w-9 h-9 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all duration-300"
                 >
                   {social.icon}
                 </a>
@@ -45,11 +44,11 @@ export default function Footer() {
 
           {/* QUICK LINKS */}
           <div>
-            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Company</h4>
-            <ul className="space-y-4">
-              {["About Us", "Careers", "Press & Media", "Contact"].map((item) => (
+            <h4 className="text-white font-bold mb-6 uppercase tracking-[0.2em] text-[10px]">Company</h4>
+            <ul className="space-y-3">
+              {["About Us", "Careers", "Press", "Contact"].map((item) => (
                 <li key={item}>
-                  <a href={`/${item.toLowerCase().replace(/\s/g, '')}`} className="text-slate-400 hover:text-indigo-400 text-sm transition-colors">
+                  <a href="#" className="text-slate-400 hover:text-indigo-400 text-sm transition-colors">
                     {item}
                   </a>
                 </li>
@@ -59,9 +58,9 @@ export default function Footer() {
 
           {/* PRODUCTS */}
           <div>
-            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Products</h4>
-            <ul className="space-y-4">
-              {["Savings Account", "Credit Cards", "Personal Loans", "Investments", "Insurance"].map((item) => (
+            <h4 className="text-white font-bold mb-6 uppercase tracking-[0.2em] text-[10px]">Products</h4>
+            <ul className="space-y-3">
+              {["Savings", "Cards", "Loans", "Investments"].map((item) => (
                 <li key={item}>
                   <a href="#" className="text-slate-400 hover:text-indigo-400 text-sm transition-colors">
                     {item}
@@ -73,31 +72,41 @@ export default function Footer() {
 
           {/* CONTACT INFO */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">Get in Touch</h4>
-            <div className="space-y-3">
-              <p className="text-indigo-400 font-semibold text-sm">📞 1800-VAJRA-BANK</p>
-              <p className="text-slate-500 text-xs italic">24/7 Priority Customer Support</p>
-              <p className="text-slate-400 text-sm">✉ support@vajrabank.com</p>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                📍 VajraBank Tower, BKC, <br />
+            <h4 className="text-white font-bold mb-6 uppercase tracking-[0.2em] text-[10px]">Support</h4>
+            <div className="space-y-3 text-sm">
+              <p className="text-indigo-400 font-bold">1800-VAJRA-BANK</p>
+              <p className="text-slate-400">support@vajrabank.com</p>
+              <p className="text-slate-500 text-xs leading-relaxed">
+                VajraBank Tower, BKC, <br />
                 Hyderabad, India 50001
               </p>
             </div>
           </div>
         </div>
 
-        {/* BOTTOM BAR */}
-        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-slate-500 text-xs text-center md:text-left">
-            © {currentYear} VajraBank. Licensed by the Reserve Bank of India (RBI).
-          </p>
+        {/* --- MOBILE & DESKTOP BOTTOM BAR --- */}
+        <div className="pt-8 border-t border-white/5 flex flex-col items-center justify-center">
           
-          <div className="flex flex-wrap justify-center gap-6">
-            {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((policy) => (
-              <a key={policy} href="#" className="text-slate-500 hover:text-white text-xs transition-colors">
-                {policy}
-              </a>
-            ))}
+          {/* Mobile Logo (Shown only on small screens) */}
+          <div className="md:hidden mb-4">
+             <h2 className="text-xl font-black text-white tracking-tight uppercase">
+              Vajra<span className="text-indigo-500">Bank</span>
+            </h2>
+          </div>
+
+          <div className="flex flex-col items-center gap-4 text-center">
+            <p className="text-slate-500 text-[10px] md:text-xs uppercase tracking-[0.1em] font-medium">
+              © {currentYear} VajraBank. Licensed by the RBI.
+            </p>
+            
+            {/* Minimal Links for Desktop, hidden or very small on mobile */}
+            <div className="flex flex-wrap justify-center gap-6">
+              {["Privacy", "Terms", "Cookies"].map((policy) => (
+                <a key={policy} href="#" className="text-slate-600 hover:text-indigo-400 text-[10px] uppercase font-bold transition-colors">
+                  {policy}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </div>

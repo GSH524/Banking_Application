@@ -5,13 +5,13 @@ import {
   X,
   BoxArrowRight,
   Grid,
-  Person,
   ShieldCheck,
   House,
   Envelope,
   InfoCircle,
   Gem,
-  PersonCircle
+  PersonCircle,
+  Gear
 } from "react-bootstrap-icons";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./common/NotificationBell";
@@ -23,7 +23,7 @@ export default function Navbar() {
   const profileRef = useRef(null);
   const navigate = useNavigate();
 
-  // Close menus when clicking outside
+  // Handle outside click to close profile dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -35,6 +35,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
+    setIsProfileOpen(false);
     setIsMenuOpen(false);
     await logoutUser();
     navigate("/");
@@ -52,61 +53,73 @@ export default function Navbar() {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
-  const navItemStyles = ({ isActive }) => 
-    `flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
-      isActive ? "text-blue-400 bg-white/5" : "text-slate-300 hover:text-white hover:bg-white/5"
+  // Styles for Desktop Links
+  const desktopNavLink = ({ isActive }) => 
+    `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+      isActive 
+        ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]" 
+        : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
     }`;
 
-  // Mobile Bottom Nav Item Style
-  const mobileTabStyles = ({ isActive }) => 
-    `flex flex-col items-center justify-center gap-1 flex-1 transition-colors ${
-      isActive ? "text-blue-500" : "text-slate-400"
+  // Styles for Mobile Bottom Tabs
+  const mobileTabLink = ({ isActive }) => 
+    `flex flex-col items-center justify-center gap-1 flex-1 transition-all duration-300 ${
+      isActive ? "text-indigo-400 scale-110 font-black" : "text-slate-500 hover:text-slate-300"
     }`;
 
   return (
     <>
-      {/* --- DESKTOP & MOBILE TOP HEADER --- */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-900/80 border-b border-white/10 backdrop-blur-md">
+      {/* --- MAIN HEADER (Visible on All Devices) --- */}
+      <nav className="sticky top-0 z-[100] flex items-center justify-between px-6 lg:px-12 py-4 bg-[#020617]/80 border-b border-white/5 backdrop-blur-xl">
+        
+        {/* LOGO */}
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="p-2 bg-blue-600 rounded-lg text-white group-hover:bg-blue-500 transition-colors">
-            <ShieldCheck size={20} />
+          <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform duration-300">
+            <ShieldCheck size={22} />
           </div>
-          <div className="text-xl font-bold tracking-tight text-white">
-            VAJRA<span className="text-blue-500">BANK</span>
+          <div className="text-xl font-black tracking-tighter text-white uppercase">
+            Vajra<span className="text-indigo-500">Bank</span>
           </div>
         </Link>
 
-        {/* Desktop Links (Hidden on Mobile) */}
-        <ul className="hidden lg:flex items-center gap-4">
-          <li><NavLink to="/" className={navItemStyles}><House size={16} /> Home</NavLink></li>
-          <li><NavLink to="/about" className={navItemStyles}><InfoCircle size={16} /> About</NavLink></li>
-          <li><NavLink to="/contact" className={navItemStyles}><Envelope size={16} /> Contact</NavLink></li>
-          <li><NavLink to="/partner-plans" className={navItemStyles}><Gem size={16} /> Partner Plans</NavLink></li>
+        {/* DESKTOP CENTER NAVIGATION (Hidden on Mobile) */}
+        <ul className="hidden lg:flex items-center gap-2">
+          <li><NavLink to="/" className={desktopNavLink}><House size={16} /> Home</NavLink></li>
+          <li><NavLink to="/about" className={desktopNavLink}><InfoCircle size={16} /> About</NavLink></li>
+          <li><NavLink to="/contact" className={desktopNavLink}><Envelope size={16} /> Contact</NavLink></li>
+          <li><NavLink to="/partner-plans" className={desktopNavLink}><Gem size={16} /> Plans</NavLink></li>
         </ul>
 
-        {/* Right Side Actions */}
+        {/* RIGHT ACTIONS (Profile, Login, Notifications) */}
         <div className="flex items-center gap-4">
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {user.role === 'admin' && <NotificationBell user={user} />}
               
-              {/* Desktop Profile Dropdown */}
-              <div className="relative hidden lg:block" ref={profileRef}>
+              <div className="relative" ref={profileRef}>
                 <button 
-                  className="flex items-center gap-3 p-1 rounded-full hover:bg-white/5 transition-colors focus:outline-none"
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900 border font-bold text-xs transition-all ${
+                    isProfileOpen ? "border-indigo-500 text-white" : "border-white/10 text-indigo-400 hover:border-indigo-500/50"
+                  }`}
                 >
-                  <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-full font-bold border border-white/20">
-                    {getInitials(user.name || user.email)}
-                  </div>
+                  {getInitials(user.name || user.email)}
                 </button>
 
+                {/* PROFILE DROPDOWN */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-slate-900 border border-white/10 rounded-xl p-2 shadow-2xl z-[1001]">
-                    <Link to={getDashboardLink()} className="flex items-center gap-3 p-3 text-slate-200 hover:bg-white/5 rounded-lg" onClick={() => setIsProfileOpen(false)}>
+                  <div className="absolute right-0 mt-3 w-64 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl py-2 z-[110] animate-in fade-in zoom-in-95 origin-top-right">
+                    <div className="px-4 py-3 border-b border-white/5 mb-1">
+                      <p className="text-sm font-bold text-white truncate">{user.name || user.email}</p>
+                      <p className="text-[10px] text-indigo-500 font-black tracking-[0.2em] uppercase">{user.role} Account</p>
+                    </div>
+                    <Link to={getDashboardLink()} onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5">
                       <Grid size={16} /> Dashboard
                     </Link>
-                    <button onClick={handleLogout} className="flex items-center gap-3 w-full p-3 text-red-400 hover:bg-red-500/10 rounded-lg">
+                    <Link to="/user/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5">
+                      <Gear size={16} /> Settings
+                    </Link>
+                    <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-rose-500 font-bold hover:bg-rose-500/10 mt-1">
                       <BoxArrowRight size={16} /> Sign Out
                     </button>
                   </div>
@@ -114,75 +127,78 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="hidden lg:flex items-center gap-3">
-              <Link to="/login" className="px-5 py-2 text-slate-300 hover:text-white">Sign In</Link>
-              <Link to="/signup" className="px-5 py-2 bg-blue-600 text-white rounded-lg">Get Started</Link>
-            </div>
+            <Link 
+              to="/login" 
+              className="group flex items-center gap-2 px-4 py-2 bg-slate-900 border border-white/10 rounded-xl text-slate-300 hover:text-white hover:border-indigo-500/50 transition-all active:scale-95"
+            >
+              <PersonCircle size={20} className="group-hover:text-indigo-500 transition-colors" />
+              <span className="hidden sm:inline text-sm font-bold">Sign In</span>
+            </Link>
           )}
 
-          {/* Mobile Menu Toggle (Visible only on Mobile) */}
-          <button className="lg:hidden text-slate-300" onClick={() => setIsMenuOpen(true)}>
+          {/* MOBILE LIST TOGGLE */}
+          <button className="lg:hidden p-2 text-slate-400 hover:text-white" onClick={() => setIsMenuOpen(true)}>
             <List size={28} />
           </button>
         </div>
       </nav>
 
-      {/* --- MOBILE SIDE DRAWER OVERLAY --- */}
+      {/* --- MOBILE SIDE DRAWER (Extra Options) --- */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[100] lg:hidden">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-          
-          {/* Drawer Content */}
-          <div className="absolute right-0 top-0 h-full w-72 bg-slate-900 border-l border-white/10 p-6 flex flex-col shadow-2xl">
-            <div className="flex justify-between items-center mb-8">
-              <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">Menu</span>
-              <button onClick={() => setIsMenuOpen(false)} className="text-slate-400"><X size={28} /></button>
+        <div className="fixed inset-0 z-[200] lg:hidden">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setIsMenuOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-72 bg-[#020617] border-l border-white/10 p-6 flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="flex justify-between items-center mb-10">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic underline underline-offset-8 decoration-indigo-500">Navigation</span>
+              <button onClick={() => setIsMenuOpen(false)} className="text-slate-400"><X size={32} /></button>
             </div>
-
             <div className="flex flex-col gap-2">
-              <NavLink to="/" className={navItemStyles} onClick={() => setIsMenuOpen(false)}><House size={18} /> Home</NavLink>
-              <NavLink to="/about" className={navItemStyles} onClick={() => setIsMenuOpen(false)}><InfoCircle size={18} /> About</NavLink>
-              <NavLink to="/contact" className={navItemStyles} onClick={() => setIsMenuOpen(false)}><Envelope size={18} /> Contact</NavLink>
-              <NavLink to="/partner-plans" className={navItemStyles} onClick={() => setIsMenuOpen(false)}><Gem size={18} /> Partner Plans</NavLink>
+              <NavLink to="/" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><House size={18} /> Home</NavLink>
+              <NavLink to="/about" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><InfoCircle size={18} /> About Us</NavLink>
+              <NavLink to="/contact" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><Envelope size={18} /> Contact</NavLink>
+              <NavLink to="/partner-plans" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><Gem size={18} /> Partner Plans</NavLink>
               
-              <div className="my-4 border-t border-white/5" />
-              
-              {user ? (
-                <>
-                  <Link to="/user/profile" className={navItemStyles} onClick={() => setIsMenuOpen(false)}><Person size={18} /> Profile Settings</Link>
-                  <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 text-red-400"><BoxArrowRight size={18} /> Logout</button>
-                </>
-              ) : (
-                <Link to="/login" className="w-full py-3 bg-blue-600 text-white rounded-lg text-center font-bold" onClick={() => setIsMenuOpen(false)}>Sign In</Link>
+              {user && (
+                <Link to={getDashboardLink()} onClick={() => setIsMenuOpen(false)} className="mt-4 flex items-center gap-3 px-4 py-3 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 rounded-xl font-bold">
+                  <Grid size={18} /> Back to Console
+                </Link>
               )}
             </div>
           </div>
         </div>
       )}
 
-      {/* --- MOBILE BOTTOM NAVIGATION (Tab Bar) --- */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/90 backdrop-blur-lg border-t border-white/10 px-2 py-3 flex items-center justify-around pb-safe">
-        <NavLink to="/" className={mobileTabStyles}>
+      {/* --- MOBILE BOTTOM TAB BAR (Home, About, Contact, Plans) --- */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#020617]/90 backdrop-blur-2xl border-t border-white/5 px-2 py-3 pb-8 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        
+        <NavLink to="/" className={mobileTabLink}>
           <House size={20} />
-          <span className="text-[10px] font-medium">Home</span>
+          <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
         </NavLink>
 
-        <NavLink to="/partner-plans" className={mobileTabStyles}>
-          <Gem size={20} />
-          <span className="text-[10px] font-medium">Plans</span>
+        <NavLink to="/about" className={mobileTabLink}>
+          <InfoCircle size={20} />
+          <span className="text-[8px] font-black uppercase tracking-widest">About</span>
         </NavLink>
 
+        {/* LOGGED IN CENTER BUTTON */}
         {user && (
-          <NavLink to={getDashboardLink()} className={mobileTabStyles}>
-            <Grid size={20} />
-            <span className="text-[10px] font-medium">Dashboard</span>
+          <NavLink to={getDashboardLink()} className={mobileTabLink}>
+            <div className="p-3 bg-indigo-600 rounded-2xl text-white -mt-10 shadow-xl shadow-indigo-600/40 border-[6px] border-[#020617]">
+              <Grid size={20} />
+            </div>
+            <span className="text-[8px] font-black uppercase tracking-widest">Console</span>
           </NavLink>
         )}
 
-        <NavLink to={user ? "/user/profile" : "/login"} className={mobileTabStyles}>
-          <PersonCircle size={20} />
-          <span className="text-[10px] font-medium">{user ? "Profile" : "Login"}</span>
+        <NavLink to="/contact" className={mobileTabLink}>
+          <Envelope size={20} />
+          <span className="text-[8px] font-black uppercase tracking-widest">Contact</span>
+        </NavLink>
+
+        <NavLink to="/partner-plans" className={mobileTabLink}>
+          <Gem size={20} />
+          <span className="text-[8px] font-black uppercase tracking-widest">Plans</span>
         </NavLink>
       </div>
     </>

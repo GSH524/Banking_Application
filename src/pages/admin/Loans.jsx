@@ -7,16 +7,9 @@ import {
 } from 'firebase/firestore';
 import { userDB } from '../../firebaseUser';
 import {
-  CashStack,
-  CheckCircle,
-  XCircle,
-  Eye,
-  CalendarWeek,
-  Person,
-  PatchCheck,
-  ExclamationTriangle,
-  Wallet2,
-  ClockHistory
+  CashStack, CheckCircle, XCircle, Eye, CalendarWeek,
+  Person, PatchCheck, ClockHistory, ChevronLeft, ChevronRight,
+  ClipboardData, ArrowRightShort
 } from 'react-bootstrap-icons';
 
 export default function AdminLoans() {
@@ -25,15 +18,13 @@ export default function AdminLoans() {
   const [pendingLoans, setPendingLoans] = useState([]);
   const [loadingApps, setLoadingApps] = useState(true);
   const [selectedLoan, setSelectedLoan] = useState(null);
+  
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 10;
 
-  // Listen for Pending Loan Applications
   useEffect(() => {
-    const q = query(
-      collection(userDB, 'loanApplications'),
-      where('status', '==', 'pending')
-    );
+    const q = query(collection(userDB, 'loanApplications'), where('status', '==', 'pending'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const apps = [];
       snapshot.forEach(doc => apps.push({ id: doc.id, ...doc.data() }));
@@ -46,21 +37,14 @@ export default function AdminLoans() {
   const handleApprove = async (loan) => {
     const confirmApprove = window.confirm(`Approve loan of ₹${loan.amount.toLocaleString()} for ${loan.userName}?`);
     if (!confirmApprove) return;
-
     try {
       const disbursementDays = 3 + Math.floor(Math.random() * 5);
-
-      // 1. Update Application Status
       await updateDoc(doc(userDB, 'loanApplications', loan.id), {
         status: 'approved',
         expectedDisbursementDays: disbursementDays,
         approvedAt: serverTimestamp()
       });
-
-      // 2. Add to Overrides (for long-term tracking)
       updateLoan(loan.userId, 'Approved');
-
-      // 3. Notify User
       await addDoc(collection(userDB, 'notifications'), {
         userId: loan.userId,
         role: 'user',
@@ -70,27 +54,22 @@ export default function AdminLoans() {
         redirectTo: '/user/loans',
         createdAt: serverTimestamp()
       });
-
       setSelectedLoan(null);
     } catch (err) {
-      console.error(err);
-      alert("Error approving loan: " + err.message);
+      alert("Error: " + err.message);
     }
   };
 
   const handleReject = async (loan) => {
     const reason = prompt("Enter rejection reason:");
     if (!reason) return;
-
     try {
       await updateDoc(doc(userDB, 'loanApplications', loan.id), {
         status: 'rejected',
         rejectionReason: reason,
         rejectedAt: serverTimestamp()
       });
-
       updateLoan(loan.userId, 'Rejected');
-
       await addDoc(collection(userDB, 'notifications'), {
         userId: loan.userId,
         role: 'user',
@@ -100,10 +79,8 @@ export default function AdminLoans() {
         redirectTo: '/user/loans',
         createdAt: serverTimestamp()
       });
-
       setSelectedLoan(null);
     } catch (err) {
-      console.error(err);
       alert("Error rejecting loan");
     }
   };
@@ -119,279 +96,209 @@ export default function AdminLoans() {
     }));
   }, [data, overrides]);
 
+  // Pagination Logic
   const totalPages = Math.ceil(activeLoans.length / ITEMS_PER_PAGE);
-
-  // Sync pagination if count changes
-  useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
-    }
-  }, [activeLoans.length, totalPages, currentPage]);
-
   const paginatedLoans = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return activeLoans.slice(start, start + ITEMS_PER_PAGE);
   }, [activeLoans, currentPage]);
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, activeLoans.length);
-
-  if (dataLoading || loadingApps) return <div className="p-10 text-center">Opening Loan Vault...</div>;
+  if (dataLoading || loadingApps) return (
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="text-indigo-500 font-mono animate-pulse tracking-widest uppercase">Unlocking Loan Vault...</div>
+    </div>
+  );
 
   return (
-    <main style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+    <div className="w-full h-screen bg-[#020617] text-slate-100 flex flex-col overflow-hidden">
+      
+      {/* HEADER SECTION */}
+      <header className="px-6 lg:px-10 pt-6 lg:pt-10 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 flex-shrink-0">
         <div>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
-            <CashStack className="text-emerald-600" /> Loan Management
+          <h1 className="text-4xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
+            <CashStack className="text-indigo-500" /> Loan <span className="text-indigo-500">Center</span>
           </h1>
-          <p style={{ color: '#64748b', marginTop: '4px' }}>Analyze applications and monitor portfolio health.</p>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-2">Internal Credit Control & Disbursement</p>
         </div>
-        <div style={{ display: 'flex', gap: '24px' }}>
-          <div className="stat-badge">
-            <span className="label">Awaiting Vetting</span>
-            <span className="value text-orange-600">{pendingLoans.length}</span>
-          </div>
+        <div className="flex gap-4">
+          <StatBadge label="Queue" value={pendingLoans.length} color="text-amber-500" />
+          <StatBadge label="Active Portfolio" value={activeLoans.length} color="text-indigo-500" />
         </div>
-      </div>
+      </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '32px' }}>
-
-        {/* PENDING APPLICATIONS */}
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>Vetting Queue</h3>
-            <span style={{ fontSize: '12px', background: '#fef3c7', color: '#d97706', padding: '4px 8px', borderRadius: '4px', fontWeight: '700' }}>{pendingLoans.length} PENDING</span>
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 px-6 lg:px-10 pb-10 overflow-hidden">
+        
+        {/* LEFT: VETTING QUEUE (COL 1-5) */}
+        <div className="lg:col-span-5 space-y-6 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between flex-shrink-0">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">Vetting Queue</h3>
+            <span className="bg-amber-500/10 text-amber-500 text-[10px] px-2 py-1 rounded-md font-black italic">PRIORITY 1</span>
           </div>
 
           {pendingLoans.length === 0 ? (
-            <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8'}}>
-              <PatchCheck size={40} style={{ marginBottom: '12px' }} />
-              <p>Queue is empty. All caught up!</p>
+            <div className="bg-slate-900/50 border border-white/5 rounded-3xl p-12 text-center flex-1 flex items-center justify-center">
+              <div>
+                <PatchCheck size={40} className="mx-auto text-slate-700 mb-4" />
+                <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">No Applications Pending</p>
+              </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-3">
               {pendingLoans.map(loan => (
-                <div
+                <button
                   key={loan.id}
                   onClick={() => setSelectedLoan(loan)}
-                  className={`admin-app-card ${selectedLoan?.id === loan.id ? 'active' : ''}`}
+                  className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 flex items-center justify-between group ${
+                    selectedLoan?.id === loan.id 
+                    ? 'bg-indigo-600 border-indigo-400 shadow-lg shadow-indigo-600/20' 
+                    : 'bg-slate-900 border-white/5 hover:border-indigo-500/50 hover:bg-slate-800'
+                  }`}
                 >
                   <div>
-                    <div style={{ fontWeight: '700', fontSize: '15px', color: 'black' }}>{loan.userName}</div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>{loan.loanType} • ₹{loan.amount.toLocaleString()}</div>
+                    <div className={`font-bold text-sm ${selectedLoan?.id === loan.id ? 'text-white' : 'text-slate-200 group-hover:text-indigo-400'}`}>
+                      {loan.userName}
+                    </div>
+                    <div className={`text-[10px] font-mono mt-1 ${selectedLoan?.id === loan.id ? 'text-indigo-200' : 'text-slate-500'}`}>
+                      {loan.loanType} • ₹{loan.amount.toLocaleString()}
+                    </div>
                   </div>
-                  <Eye className="text-blue-500" />
-                </div>
+                  <ArrowRightShort size={24} className={selectedLoan?.id === loan.id ? 'text-white' : 'text-slate-600 group-hover:text-indigo-400'} />
+                </button>
               ))}
+              </div>
             </div>
           )}
 
           {/* DETAIL PANEL */}
           {selectedLoan && (
-            <div className="glass-card" style={{ marginTop: '24px', padding: '30px', background: '#f8fafc', border: '1px solid #10b981' }}>
-              <h4 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: '800' }}>Application Review</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div className="info-box"><Person /> <span>{selectedLoan.userName}</span></div>
-                <div className="info-box"><CashStack /> <span>₹{selectedLoan.amount.toLocaleString()}</span></div>
-                <div className="info-box"><CalendarWeek /> <span>{selectedLoan.tenureMonths} Months</span></div>
-                <div className="info-box"><ClockHistory /> <span>Purpose: {selectedLoan.reason}</span></div>
+            <div className="bg-slate-900 border-2 border-indigo-500/30 rounded-3xl p-6 animate-in fade-in slide-in-from-bottom-4 flex-shrink-0">
+              <h4 className="text-xs font-black uppercase tracking-widest text-indigo-400 mb-6 flex items-center gap-2">
+                <ClipboardData /> Reviewing Application
+              </h4>
+              
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <InfoItem icon={<Person />} val={selectedLoan.userName} />
+                <InfoItem icon={<CashStack />} val={`₹${selectedLoan.amount.toLocaleString()}`} />
+                <InfoItem icon={<CalendarWeek />} val={`${selectedLoan.tenureMonths} Mos`} />
+                <InfoItem icon={<ClockHistory />} val={selectedLoan.loanType} />
               </div>
-              <div style={{ padding: '12px', background: '#ecfdf5', color: 'black', borderRadius: '8px', marginTop: '16px', fontSize: '13px', fontWeight: '600' }}>
-                Interest Rate (Proposed): {selectedLoan.loanType === 'Home' ? '8.5%' : selectedLoan.loanType === 'Car' ? '9.2%' : '11.5%'}
+
+              <div className="bg-indigo-500/5 border border-indigo-500/10 p-4 rounded-xl mb-6">
+                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Purpose of Loan</p>
+                <p className="text-sm text-slate-300 italic">"{selectedLoan.reason}"</p>
               </div>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                <button onClick={() => handleApprove(selectedLoan)} style={{ flex: 1, padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>Approve</button>
-                <button onClick={() => handleReject(selectedLoan)} style={{ flex: 1, padding: '10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>Reject</button>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => handleApprove(selectedLoan)}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase py-3 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <CheckCircle size={14}/> Approve
+                </button>
+                <button 
+                   onClick={() => handleReject(selectedLoan)}
+                  className="flex-1 bg-rose-600/10 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/20 font-black text-[10px] uppercase py-3 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <XCircle size={14}/> Reject
+                </button>
               </div>
             </div>
           )}
-        </section>
+        </div>
 
-        {/* ACTIVE LOANS CONTROL */}
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>Portfolio Inventory</h3>
+        {/* RIGHT: PORTFOLIO INVENTORY (COL 6-12) */}
+        <div className="lg:col-span-7 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between mb-6 flex-shrink-0">
+             <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">Portfolio Inventory</h3>
           </div>
-
-          <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ background: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
-                <tr>
-                  <th className="th">Customer</th>
-                  <th className="th">Product</th>
-                  <th className="th">Principal</th>
-                  <th className="th">Health</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedLoans.length === 0 ? (
+          
+          <div className="bg-slate-900/50 border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col flex-1">
+            <div className="overflow-x-auto overflow-y-auto flex-1">
+              <table className="w-full text-left h-full">
+                <thead className="bg-white/[0.02] border-b border-white/5">
                   <tr>
-                    <td colSpan="4" className="td" style={{ textAlign: 'center', color: '#94a3b8', padding: '40px' }}>No active loans found.</td>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-500 tracking-widest">Customer</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-500 tracking-widest">Principal</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-500 tracking-widest">Status</th>
                   </tr>
-                ) : (
-                  paginatedLoans.map(l => (
-                    <tr key={l.customerId} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td className="td">
-                        <div style={{ fontWeight: '600' }}>{l.fullName}</div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>{l.loanId || 'PROV-' + l.customerId.slice(-5)}</div>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {paginatedLoans.map(l => (
+                    <tr key={l.customerId} className="group hover:bg-white/[0.01] transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-sm text-white group-hover:text-indigo-400">{l.fullName}</div>
+                        <div className="text-[9px] font-mono text-slate-500 uppercase">{l.loanType}</div>
                       </td>
-                      <td className="td">
-                        <span style={{ fontSize: '12px', fontWeight: '600', padding: '4px 8px', borderRadius: '4px', background: '#f1f5f9' }}>{l.loanType}</span>
+                      <td className="px-6 py-4">
+                        <div className="font-mono text-xs text-emerald-400 font-bold">₹{Number(l.loanAmount).toLocaleString()}</div>
+                        <div className="text-[9px] text-slate-500 font-bold uppercase">{l.tenure} Months</div>
                       </td>
-                      <td className="td">
-                        <div style={{ fontWeight: '700' }}>₹{Number(l.loanAmount).toLocaleString()}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>{l.tenure} months</div>
-                      </td>
-                      <td className="td">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <div style={{
-                            width: '8px', height: '8px', borderRadius: '50%',
-                            background: l.status === 'Approved' ? '#10b981' : l.status === 'Defaulted' ? '#ef4444' : '#64748b'
-                          }}></div>
-                          <span style={{ fontSize: '12px', fontWeight: '600', color: l.status === 'Approved' ? '#059669' : '#1e293b' }}>
-                            {l.status}
-                          </span>
-                        </div>
+                      <td className="px-6 py-4">
+                        <StatusPill status={l.status} />
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-
-            {/* PAGINATION CONTROLS */}
-            <div style={{
-              padding: '16px 24px',
-              background: '#f8fafc',
-              borderTop: '1px solid #e2e8f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              position: 'sticky',
-              bottom: 0,
-              zIndex: 10
-            }}>
-              <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
-                Showing <span style={{ color: '#0f172a', fontWeight: '700' }}>{activeLoans.length === 0 ? 0 : startIndex + 1}</span> to <span style={{ color: '#0f172a', fontWeight: '700' }}>{endIndex}</span> of <span style={{ color: '#0f172a', fontWeight: '700' }}>{activeLoans.length}</span> entries
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => { setCurrentPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  className="p-btn"
-                >First</button>
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  className="p-btn"
-                >Prev</button>
-
-                <div style={{ display: 'flex', gap: '4px', margin: '0 8px' }}>
-                  {[...Array(totalPages)].map((_, i) => {
-                    const p = i + 1;
-                    if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
-                      return (
-                        <button
-                          key={p}
-                          onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                          className={`p-number ${currentPage === p ? 'active' : ''}`}
-                        >{p}</button>
-                      );
-                    }
-                    if (p === 2 || p === totalPages - 1) {
-                      return <span key={p} style={{ color: '#94a3b8', padding: '0 4px' }}>...</span>;
-                    }
-                    return null;
-                  })}
-                </div>
-
-                <button
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  className="p-btn"
-                >Next</button>
-                <button
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  onClick={() => { setCurrentPage(totalPages); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  className="p-btn"
-                >Last</button>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* PAGINATION */}
+            <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-between flex-shrink-0">
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Page {currentPage} / {totalPages}</span>
+              <div className="flex gap-2">
+                <button 
+                   disabled={currentPage === 1}
+                   onClick={() => setCurrentPage(prev => prev - 1)}
+                   className="p-2 rounded-lg bg-slate-800 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30"
+                >
+                  <ChevronLeft />
+                </button>
+                <button 
+                   disabled={currentPage === totalPages}
+                   onClick={() => setCurrentPage(prev => prev + 1)}
+                   className="p-2 rounded-lg bg-slate-800 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30"
+                >
+                  <ChevronRight />
+                </button>
               </div>
             </div>
           </div>
-        </section>
+        </div>
       </div>
+    </div>
+  );
+}
 
-      <style>{`
-                .p-btn {
-                    padding: 8px 14px;
-                    border: 1px solid #e2e8f0;
-                    background: white;
-                    border-radius: 8px;
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: #475569;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .p-btn:hover:not(:disabled) { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
-                .p-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+// Helper Components
+function StatBadge({ label, value, color }) {
+  return (
+    <div className="bg-slate-900 border border-white/5 p-4 rounded-2xl min-w-[140px]">
+      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+      <p className={`text-2xl font-mono font-bold ${color}`}>{value}</p>
+    </div>
+  );
+}
 
-                .p-number {
-                    width: 36px;
-                    height: 36px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: 1px solid transparent;
-                    background: none;
-                    border-radius: 8px;
-                    font-size: 13px;
-                    font-weight: 700;
-                    color: #64748b;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .p-number:hover { background: #f1f5f9; color: #0f172a; }
-                .p-number.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+function InfoItem({ icon, val }) {
+  return (
+    <div className="bg-slate-800/50 border border-white/5 p-3 rounded-xl flex items-center gap-3">
+      <span className="text-indigo-500">{icon}</span>
+      <span className="text-xs font-bold text-slate-200 truncate">{val}</span>
+    </div>
+  );
+}
 
-                .stat-badge {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-end;
-                }
-                .stat-badge .label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-                .stat-badge .value { font-size: 24px; font-weight: 800; }
-                
-                .admin-app-card {
-                    padding: 16px 20px;
-                    background: white;
-                    border: 1.5px solid #e2e8f0;
-                    border-radius: 12px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .admin-app-card:hover { border-color: #3b82f6; background: #f0f7ff; }
-                .admin-app-card.active { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-                
-                .info-box {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 13px;
-                    color: #475569;
-                    background: white;
-                    padding: 8px 12px;
-                    border-radius: 6px;
-                    border: 1px solid #e2e8f0;
-                }
-                .th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; }
-                .td { padding: 16px; font-size: 14px; }
-            `}</style>
-    </main>
+function StatusPill({ status }) {
+  const isApproved = status === 'Approved' || status === 'Current';
+  const isDefaulted = status === 'Defaulted' || status === 'Rejected';
+  
+  return (
+    <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border ${
+      isApproved ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+      isDefaulted ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 
+      'bg-slate-500/10 text-slate-400 border-slate-500/20'
+    }`}>
+      {status}
+    </span>
   );
 }

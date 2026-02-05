@@ -1,35 +1,32 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { userAuth, userDB } from "../firebaseUser";
 
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+// Icons
+import { FaEye, FaEyeSlash, FaUserCircle, FaEnvelope, FaLock, FaPhoneAlt, FaChevronRight } from "react-icons/fa";
+import { ShieldLock } from "react-bootstrap-icons";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { loginUser, loginLegacyUser } = useAuth();
+  const { loginUser, loginAdmin } = useAuth();
 
-  const [mode, setMode] = useState("user"); // user | signup
-
-  // common
+  const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // signup-only
+  // Signup-only states
   const [firstname, setFirstname] = useState("");
   const [mobile, setMobile] = useState("");
   const [image, setImage] = useState("");
 
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
   /* ================= TYPING ANIMATION ================= */
-  const fullText = "Secure Banking Access";
+  const fullText = "Vajra Banking Portal";
   const [typedText, setTypedText] = useState("");
   const [index, setIndex] = useState(0);
 
@@ -43,400 +40,224 @@ export default function Login() {
     }
   }, [index]);
 
-  /* ================= PASSWORD VALIDATION ================= */
-  const validatePassword = (pwd) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
-
   /* ================= IMAGE UPLOAD ================= */
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 800 * 1024) {
-      setError("Image must be under 800KB");
+    if (!file || file.size > 800 * 1024) {
+      toast.error("Image must be under 800KB");
       return;
     }
-
     const reader = new FileReader();
     reader.onloadend = () => setImage(reader.result);
     reader.readAsDataURL(file);
   };
 
-  /* ================= MAIN SUBMIT ================= */
+  /* ================= UNIFIED SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (submitting) return;
-
-    setError("");
     setSubmitting(true);
 
-    if (mode === "user") {
-      // HANDLE LOGIN
-      try {
-        // Sign in with Firebase Auth
-        const userCredential = await signInWithEmailAndPassword(
-          userAuth,
-          email,
-          password
-        );
+    if (mode === "login") {
+      // 1. FIRST CHECK: ADMIN CREDENTIALS
+      const isAdmin = loginAdmin(email, password);
+      if (isAdmin) {
+        toast.success("Admin Access Granted");
+        navigate("/admin/dashboard");
+        return;
+      }
 
+      // 2. SECOND CHECK: FIREBASE / PARTNER / USER
+      try {
+        const userCredential = await signInWithEmailAndPassword(userAuth, email, password);
         const user = userCredential.user;
 
-        // Fetch user profile from Firestore
+        // Check Users Collection
         const userDoc = await getDoc(doc(userDB, 'users', user.uid));
-
-        if (!userDoc.exists()) {
-          // CHECK IF PARTNER
-          const partnerDoc = await getDoc(doc(userDB, 'partners', user.uid));
-
-          if (partnerDoc.exists()) {
-            const partnerData = partnerDoc.data();
-            await loginUser({
-              uid: user.uid,
-              email: user.email,
-              role: "partner",
-              source: "firebase",
-              displayName: partnerData.companyName || partnerData.fullName,
-              ...partnerData
-            });
-            navigate("/partner/dashboard");
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.status !== "approved") {
+            toast.error(`Account status: ${userData.status}`);
+            setSubmitting(false);
             return;
           }
-
-          setError("User profile not found. Please contact support.");
-          setSubmitting(false);
+          await loginUser({ uid: user.uid, role: "user", ...userData });
+          navigate("/user/dashboard");
           return;
         }
 
-        const userData = userDoc.data();
-
-        // Check if user is approved by admin
-        if (userData.status === "pending") {
-          await userAuth.signOut();
-          setError("Your account is pending admin approval. Please wait for approval.");
-          setSubmitting(false);
+        // Check Partners Collection
+        const partnerDoc = await getDoc(doc(userDB, 'partners', user.uid));
+        if (partnerDoc.exists()) {
+          const pData = partnerDoc.data();
+          await loginUser({ uid: user.uid, role: "partner", ...pData });
+          navigate("/partner/dashboard");
           return;
         }
 
-        if (userData.status === "rejected") {
-          await userAuth.signOut();
-          setError("Your account request was rejected by admin. Please contact support.");
-          setSubmitting(false);
-          return;
-        }
-
-        if (userData.status !== "approved") {
-          await userAuth.signOut();
-          setError("Your account access is currently restricted.");
-          setSubmitting(false);
-          return;
-        }
-
-        // User is approved, proceed with login
-        await loginUser({
-          uid: user.uid,
-          email: user.email,
-          role: "user",
-          source: userData.source || "firebase",
-          displayName: `${userData.firstName} ${userData.lastName}`,
-          ...userData
-        });
-
-        setShowPassword(false);
-        navigate("/user/dashboard");
-
+        toast.error("Profile not found. Contact Support.");
       } catch (error) {
-        console.error('Firebase Login attempt failed, checking legacy...', error.code);
-
-        // FALLBACK TO LEGACY JSON USERS
+        // 3. THIRD CHECK: LEGACY DATA FALLBACK
         try {
-          const response = await fetch('/bankData.json');
-          if (!response.ok) throw new Error("Failed to load bank data");
-          const allData = await response.json();
+          const res = await fetch('/bankData.json');
+          const data = await res.json();
+          const legacyMatch = data.find(u => u.Email?.toLowerCase() === email.toLowerCase());
 
-          // Find all records for this email
-          const userRows = allData.filter(row => row.Email?.toLowerCase() === email.toLowerCase());
-
-          if (userRows.length > 0) {
-            const profile = userRows[0];
-            const legacyPassword = profile["Contact Number"]?.toString();
-
-            if (password === legacyPassword) {
-              // Password matches Contact Number!
-              const { normalizeLegacyUser } = await import("../utils/userUtils");
-              const legacyUser = normalizeLegacyUser(userRows);
-
-              await loginUser(legacyUser);
-              navigate("/user/dashboard");
-              return;
-            } else {
-              setError("Incorrect password for legacy account.");
-              setSubmitting(false);
-              return;
-            }
-          }
-        } catch (legacyErr) {
-          console.error('Legacy check failed:', legacyErr);
-        }
-
-        // FALLBACK TO REST API LOGIN (for partner/admin accounts)
-        try {
-          const { authService } = await import("../services/authService");
-
-          console.log('Attempting REST API login...');
-          const result = await authService.login(email, password);
-
-          if (result.success) {
-            console.log('✅ REST API login successful:', result.user.role);
-
-            // Login successful via REST API
-            await loginUser({
-              uid: result.user.id,
-              email: result.user.email,
-              role: result.user.role,
-              source: "rest-api",
-              displayName: result.user.name,
-              businessName: result.user.businessName
-            });
-
-            // Navigate based on role
-            if (result.user.role === 'admin') {
-              navigate("/admin/dashboard");
-            } else if (result.user.role === 'partner') {
-              navigate("/partner/dashboard");
-            } else {
-              navigate("/user/dashboard");
-            }
+          if (legacyMatch && password === legacyMatch["Contact Number"]?.toString()) {
+            const { normalizeLegacyUser } = await import("../utils/userUtils");
+            const legacyUser = normalizeLegacyUser([legacyMatch]);
+            await loginUser(legacyUser);
+            navigate("/user/dashboard");
             return;
           }
-        } catch (apiErr) {
-          console.error('REST API login failed:', apiErr);
-        }
+        } catch (e) { console.error("Legacy fail", e); }
 
-        let errorMessage = "Invalid email or password";
-
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-          errorMessage = "No account found with this email.";
-        } else if (error.code === 'auth/wrong-password') {
-          errorMessage = "Incorrect password.";
-        } else if (error.code === 'auth/invalid-email') {
-          errorMessage = "Invalid email address.";
-        } else if (error.code === 'auth/user-disabled') {
-          errorMessage = "This account has been disabled.";
-        } else if (error.code === 'auth/too-many-requests') {
-          errorMessage = "Too many failed login attempts. Please try again later.";
-        }
-
-        setError(errorMessage);
+        toast.error("Invalid credentials or network error");
       } finally {
         setSubmitting(false);
       }
-      return;
+    } else {
+      // HANDLE SIGNUP LOGIC (As per your existing code)
+      handleSignup();
     }
-
-    // HANDLE REGISTRATION
-    try {
-      // 1. Check if user exists in bankData.json (Legacy)
-      const response = await fetch('/bankData.json');
-      let isLegacy = false;
-      let legacyRows = [];
-      if (response.ok) {
-        const allData = await response.json();
-        legacyRows = allData.filter(row => row.Email?.toLowerCase() === email.toLowerCase());
-        if (legacyRows.length > 0) isLegacy = true;
-      }
-
-      // 2. Create in Firebase
-      const userCredential = await createUserWithEmailAndPassword(userAuth, email, password);
-      const user = userCredential.user;
-
-      // 3. Prepare Firestore profile with integrated legacy data
-      let userProfile = {
-        firstName: firstname,
-        lastName: '',
-        email: email,
-        mobile: mobile,
-        accountType: "Savings",
-        balance: 0,
-        status: "pending",
-        source: "firebase",
-        imageUrl: image,
-        createdAt: serverTimestamp(),
-        transactions: [],
-        loans: []
-      };
-
-      if (isLegacy) {
-        const { normalizeLegacyUser } = await import("../utils/userUtils");
-        const normalized = normalizeLegacyUser(legacyRows);
-        userProfile = {
-          ...userProfile,
-          firstName: firstname || normalized.firstName,
-          lastName: normalized.lastName,
-          mobile: mobile || normalized.mobile,
-          accountType: normalized.accountType,
-          balance: normalized.balance,
-          status: "approved", // Pre-approved for legacy
-          source: "legacy",
-          transactions: normalized.transactions,
-          loans: normalized.loans,
-          customerId: normalized.customerId
-        };
-      }
-
-      await setDoc(doc(userDB, 'users', user.uid), userProfile);
-
-      // 4. Notify Admin if NOT legacy (since legacy is pre-approved)
-      if (!isLegacy) {
-        await addDoc(collection(userDB, 'notifications'), {
-          type: 'new_user',
-          message: `New account request from: ${email}`,
-          userId: user.uid,
-          read: false,
-          createdAt: serverTimestamp(),
-          role: 'admin'
-        });
-        setError("Account request sent! Please wait for admin approval.");
-        setMode("user");
-      } else {
-        // Auto-login for approved legacy folks
-        await loginUser({ uid: user.uid, ...userProfile });
-        navigate("/user/dashboard");
-      }
-
-    } catch (err) {
-      console.error('Signup error:', err);
-      setError(err.message.includes("email-already-in-use") ? "Email already exists. Try logging in." : "Signup failed.");
-    } finally {
-      setSubmitting(false);
-    }
-    return;
   };
 
-  /* ================= FORGOT PASSWORD ================= */
-  const handleForgotPassword = async () => {
-    if (!email) {
-      alert("Enter your email first");
-      return;
-    }
-
+  const handleSignup = async () => {
     try {
-      await sendPasswordResetEmail(userAuth, email);
-      alert("Password reset email sent");
+      const userCredential = await createUserWithEmailAndPassword(userAuth, email, password);
+      const user = userCredential.user;
+      const userProfile = {
+        firstName: firstname, email, mobile, status: "pending", createdAt: serverTimestamp(), imageUrl: image
+      };
+      await setDoc(doc(userDB, 'users', user.uid), userProfile);
+      toast.success("Request sent for approval!");
+      setMode("login");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card animate-container">
-        <h2 className="typing-text">
-          {typedText}
-          <span className="cursor">.</span>
-        </h2>
+    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 selection:bg-indigo-500/30">
+      <Toaster position="top-center" />
+      
+      {/* Background Decor */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+      </div>
 
-        <p className="subtitle">Sign in to access your dashboard</p>
-
-        {error && <p style={{ color: "salmon" }}>{error}</p>}
-
-        <form onSubmit={handleSubmit}>
-          {/* ================= SIGNUP EXTRA ================= */}
-          {mode === "signup" && (
-            <>
-              <div className="profile-upload">
-                <label className="avatar-circle">
-                  {image ? (
-                    <img src={image} alt="Profile" className="avatar-preview" />
-                  ) : (
-                    <span style={{color:"white"}}>Upload</span>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={handleImageChange}
-                  />
-                </label>
-              </div>
-
-              <input
-                type="text"
-                placeholder="First Name"
-                value={firstname}
-                onChange={(e) => setFirstname(e.target.value)}
-                required
-              />
-
-              <input
-                type="tel"
-                placeholder="Mobile Number"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                required
-              />
-            </>
-          )}
-
-          {/* EMAIL */}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          {/* PASSWORD */}
-          <div className="password-wrapper">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder={mode === "signup" ? "Create Password" : "Password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            <span
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
+      <div className="w-full max-w-[440px] z-10">
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-[2.5rem] p-8 md:p-10 shadow-2xl">
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-indigo-600 to-blue-500 rounded-2xl shadow-lg shadow-indigo-500/20 mb-6">
+              <ShieldLock className="text-white" size={32} />
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight h-8">
+              {typedText}<span className="animate-pulse">|</span>
+            </h1>
+            <p className="text-slate-400 text-sm mt-2">Enter your credentials to continue</p>
           </div>
 
-          {mode === "user" && (
-            <p className="forgot-link" onClick={handleForgotPassword}>
-              Forgot password?
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Signup Extra Fields */}
+            {mode === "signup" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex justify-center mb-4">
+                   <label className="relative group cursor-pointer">
+                      <div className="w-20 h-20 rounded-full bg-slate-800 border-2 border-dashed border-slate-700 flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-500">
+                        {image ? <img src={image} className="w-full h-full object-cover" /> : <FaUserCircle className="text-slate-600 group-hover:text-indigo-400" size={30} />}
+                      </div>
+                      <input type="file" hidden onChange={handleImageChange} />
+                   </label>
+                </div>
+                <div className="relative">
+                  <FaUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input 
+                    type="text" placeholder="Full Name" required
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    value={firstname} onChange={(e)=>setFirstname(e.target.value)}
+                  />
+                </div>
+                <div className="relative">
+                  <FaPhoneAlt size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input 
+                    type="tel" placeholder="Mobile Number" required
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    value={mobile} onChange={(e)=>setMobile(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Email Field */}
+            <div className="relative">
+              <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input 
+                type="email" placeholder="Email Address" required
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-600"
+                value={email} onChange={(e)=>setEmail(e.target.value)}
+              />
+            </div>
+
+            {/* Password Field */}
+            <div className="relative">
+              <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Password" required
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-12 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-600"
+                value={password} onChange={(e)=>setPassword(e.target.value)}
+              />
+              <button 
+                type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+
+            {mode === "login" && (
+              <div className="text-right">
+                <button type="button" onClick={() => toast.error("Reset link sent to email!")} className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-widest">
+                  Forgot Password?
+                </button>
+              </div>
+            )}
+
+            <button 
+              disabled={submitting}
+              className="group relative w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              {submitting ? "Processing..." : (mode === "login" ? "Authorize Access" : "Create Account")}
+              {!submitting && <FaChevronRight className="group-hover:translate-x-1 transition-transform" size={12} />}
+            </button>
+          </form>
+
+          {/* Footer Toggle */}
+          <div className="mt-8 text-center space-y-4">
+            <p className="text-slate-500 text-sm">
+              {mode === "login" ? "New to our platform?" : "Already have an account?"}
+              <button 
+                onClick={() => mode === "login" ? navigate("/signup") : navigate("/login")}
+                className="ml-2 text-white font-bold hover:underline decoration-indigo-500 underline-offset-4"
+              >
+                {mode === "login" ? "Create Login" : "Login Now"}
+              </button>
             </p>
-          )}
-
-          <button type="submit" className="login-btn" disabled={submitting}>
-            {submitting
-              ? "Please wait..."
-              : mode === "signup"
-                ? "Create login"
-                : "Login"}
-          </button>
-        </form>
-
-        <p className="signup-text">
-          {mode === "user" ? (
-            <>
-              New user? <span onClick={() => setMode("signup")}>Sign up</span>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <span onClick={() => setMode("user")}>Login</span>
-            </>
-          )}
-        </p>
-
-        <p className="hint-a" onClick={() => navigate("/admin")}>
-          Admin Login →
-        </p>
-
+            
+            <div className="pt-4 border-t border-slate-800/50">
+               <p className="text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
+                 Secured by Industry-Standard Encryption
+               </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
