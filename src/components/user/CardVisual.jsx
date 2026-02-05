@@ -19,166 +19,123 @@ const CardVisual = ({ type, number, holder, expiry, blocked }) => {
         setTilt({ x: rotateX, y: rotateY });
     };
 
-    const handleMouseLeave = () => {
-        setTilt({ x: 0, y: 0 });
-    };
+    const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
 
-    const getCardStyle = (cardType) => {
+    const getCardTheme = (cardType) => {
         switch (cardType) {
             case 'Vajra Platinum':
                 return {
-                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#f8fafc',
-                    accent: '#3b82f6',
-                    hologram: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.1) 100%)'
+                    bg: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950',
+                    text: 'text-slate-100',
+                    accent: 'text-indigo-400',
+                    hologram: 'bg-gradient-to-br from-indigo-500/10 to-purple-500/10'
                 };
             case 'Vajra Gold':
                 return {
-                    background: 'linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    accent: '#fef3c7',
-                    hologram: 'linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(252,211,77,0.1) 100%)'
+                    bg: 'bg-gradient-to-br from-amber-600 via-yellow-500 to-amber-700',
+                    text: 'text-white',
+                    accent: 'text-amber-200',
+                    hologram: 'bg-gradient-to-br from-white/20 to-transparent'
                 };
             default: // Classic
                 return {
-                    background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff',
-                    accent: '#dbeafe',
-                    hologram: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)'
+                    bg: 'bg-gradient-to-br from-blue-800 via-blue-600 to-indigo-900',
+                    text: 'text-white',
+                    accent: 'text-blue-200',
+                    hologram: 'bg-gradient-to-br from-white/10 to-transparent'
                 };
         }
     };
 
-    const style = getCardStyle(type);
+    const theme = getCardTheme(type);
 
     return (
-        <div
-            className="card-container"
+        <div 
+            className="group relative w-full max-w-[400px] aspect-[1.58] mx-auto cursor-pointer perspective-1000 animate-in fade-in slide-in-from-bottom-8 duration-700"
             onClick={() => setIsFlipped(!isFlipped)}
-            style={{
-                perspective: '1000px',
-                width: '100%',
-                maxWidth: '400px',
-                margin: '0 auto',
-                cursor: 'pointer',
-                aspectRatio: '1.58'
-            }}
         >
             <div
-                className={`card-inner ${isFlipped ? 'is-flipped' : ''}`}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                style={{
-                    position: 'relative',
-                    width: '100%',
-                    height: '100%',
-                    transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                    transformStyle: 'preserve-3d',
-                    transform: isFlipped ? 'rotateY(180deg)' : `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`
+                style={{ 
+                    transform: isFlipped ? 'rotateY(180deg)' : `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                    transformStyle: 'preserve-3d'
                 }}
+                className="relative w-full h-full transition-transform duration-700 ease-out shadow-2xl rounded-[20px]"
             >
                 {/* FRONT SIDE */}
-                <div
-                    className="card-front"
-                    style={{
-                        ...style,
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        backfaceVisibility: 'hidden',
-                        borderRadius: '20px',
-                        padding: '30px',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                        filter: blocked ? 'grayscale(0.8) contrast(0.8)' : 'none',
-                        overflow: 'hidden'
-                    }}
+                <div 
+                    className={`absolute inset-0 w-full h-full p-8 rounded-[20px] backface-hidden overflow-hidden border border-white/10 flex flex-col justify-between shadow-black/50 ${theme.bg} ${theme.text} ${blocked ? 'grayscale contrast-75 opacity-80' : ''}`}
+                    style={{ backfaceVisibility: 'hidden' }}
                 >
-                    {/* Visual patterns */}
-                    <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '200px', height: '200px', background: style.hologram, borderRadius: '50%' }}></div>
+                    {/* Visual patterns / Hologram sphere */}
+                    <div className={`absolute -top-20 -right-20 w-52 h-52 rounded-full blur-3xl ${theme.hologram}`} />
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '35px' }}>
+                    <div className="flex justify-between items-start z-10">
                         <div>
-                            <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '1px', textTransform: 'uppercase' }}>VajraBank</span>
-                            <span style={{ fontSize: '10px', opacity: 0.8, letterSpacing: '2px', display: 'block' }}>PREMIUM BANKING</span>
+                            <span className="text-xl font-black tracking-tighter italic uppercase">VajraBank</span>
+                            <span className="text-[8px] font-black tracking-[0.3em] opacity-60 block uppercase mt-0.5">Tactical Wealth</span>
                         </div>
-                        <Wifi size={24} style={{ color: style.accent }} />
+                        <Wifi size={24} className={`${theme.accent} animate-pulse`} />
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <div style={{ width: '50px', height: '38px', background: 'linear-gradient(45deg, #fef08a, #eab308)', borderRadius: '6px' }}></div>
-                        <span style={{ fontSize: '14px', fontWeight: '600', opacity: 0.9 }}>{type}</span>
+                    <div className="flex justify-between items-center z-10">
+                        {/* EMV Chip */}
+                        <div className="w-12 h-9 bg-gradient-to-br from-yellow-200 via-yellow-500 to-amber-600 rounded-lg shadow-inner overflow-hidden flex flex-col gap-1 p-1">
+                             <div className="h-full w-full border border-black/10 rounded-sm" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-80 italic">{type}</span>
                     </div>
 
-                    <div style={{ fontSize: '24px', fontFamily: 'monospace', letterSpacing: '3px', marginBottom: '25px', textShadow: '0 2px 4px rgba(0,0,0,0.4)', color: '#fff' }}>
+                    <div className="text-2xl font-mono tracking-[4px] z-10 drop-shadow-lg filter brightness-125">
                         {maskCardNumber(number)}
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: '10px', opacity: 0.9, color: '#fff', margin: 0, textTransform: 'uppercase', fontWeight: '700' }}>Card Holder</p>
-                            <p style={{ fontSize: '16px', fontWeight: '700', margin: '2px 0 0 0', color: '#fff' }}>{holder}</p>
+                    <div className="flex justify-between items-end z-10">
+                        <div className="flex-1">
+                            <p className="text-[8px] font-black uppercase tracking-widest opacity-60 m-0">Card Operator</p>
+                            <p className="text-sm font-bold uppercase tracking-tight">{holder}</p>
                         </div>
-                        <div style={{ marginLeft: '20px' }}>
-                            <p style={{ fontSize: '10px', opacity: 0.9, color: '#fff', margin: 0, fontWeight: '700' }}>VALID THRU</p>
-                            <p style={{ fontSize: '15px', fontWeight: '700', margin: '2px 0 0 0', color: '#fff' }}>{expiry}</p>
+                        <div className="mx-4 text-center">
+                            <p className="text-[8px] font-black uppercase tracking-widest opacity-60 m-0">Expiry</p>
+                            <p className="text-sm font-bold font-mono">{expiry}</p>
                         </div>
-                        <div style={{ marginLeft: '20px' }}>
-                            <img src="https://img.icons8.com/color/48/000000/visa.png" alt="Visa" style={{ height: '35px' }} />
+                        <div className="shrink-0 grayscale brightness-200">
+                            <img src="https://img.icons8.com/color/48/000000/visa.png" alt="Visa" className="h-8" />
                         </div>
                     </div>
                 </div>
 
                 {/* BACK SIDE */}
-                <div
-                    className="card-back"
-                    style={{
-                        ...style,
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        backfaceVisibility: 'hidden',
-                        borderRadius: '20px',
-                        transform: 'rotateY(180deg)',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                        overflow: 'hidden'
+                <div 
+                    className={`absolute inset-0 w-full h-full rounded-[20px] backface-hidden flex flex-col justify-between py-8 border border-white/10 ${theme.bg} ${theme.text}`}
+                    style={{ 
+                        backfaceVisibility: 'hidden', 
+                        transform: 'rotateY(180deg)' 
                     }}
                 >
-                    <div style={{ height: '50px', background: '#000', width: '100%', marginTop: '30px' }}></div>
-                    <div style={{ padding: '20px 30px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <div style={{ height: '40px', background: '#fff', flex: 1, color: '#000', display: 'flex', alignItems: 'center', padding: '0 10px', fontWeight: 'bold' }}>
-                                <div style={{ fontSize: '10px', color: '#94a3b8', marginRight: '10px', fontStyle: 'italic' }}>Authorized Signature</div>
+                    <div className="h-12 bg-black/80 w-full mt-4" />
+                    
+                    <div className="px-8">
+                        <div className="flex items-center gap-4">
+                            <div className="h-10 bg-white/90 flex-grow flex items-center px-4 rounded-sm">
+                                <span className="text-[8px] text-slate-400 font-black italic uppercase tracking-widest">Authorized Signature</span>
                             </div>
-                            <div style={{ background: '#fff', padding: '10px', borderRadius: '4px', color: '#000', fontWeight: 'bold', minWidth: '50px', textAlign: 'center' }}>
+                            <div className="bg-white text-black font-mono font-black italic px-4 py-2 rounded-sm shadow-inner">
                                 123
                             </div>
                         </div>
-                        <p style={{ fontSize: '10px', marginTop: '30px', opacity: 0.7, lineHeight: '1.4' }}>
-                            This card is issued by VajraBank. Use of this card is subject to the terms and conditions in the Cardholder Agreement.
-                            If found, please return to any VajraBank branch or mail to Global Headquarters.
+
+                        <p className="text-[7px] font-bold mt-8 opacity-50 leading-relaxed uppercase tracking-tighter">
+                            This asset remains the property of VajraBank. Unauthorized use of this terminal interface or the associated credit line will trigger immediate security protocols. If discovered, please transmit to the nearest secure drop point.
                         </p>
-                        <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>vajrabank.com</span>
+                        
+                        <div className="text-center mt-6">
+                            <span className="text-[10px] font-black tracking-[0.4em] uppercase opacity-70">vajrabank.os</span>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <style>{`
-                .card-inner.is-flipped {
-                    transform: rotateY(180deg);
-                }
-                @keyframes cardEntry {
-                    from { transform: translateY(30px) scale(0.9); opacity: 0; }
-                    to { transform: translateY(0) scale(1); opacity: 1; }
-                }
-                .card-container {
-                    animation: cardEntry 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-                }
-            `}</style>
         </div>
     );
 };

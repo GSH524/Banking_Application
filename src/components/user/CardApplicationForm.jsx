@@ -34,47 +34,67 @@ const CardApplicationForm = ({ user, onSubmit, onCancel }) => {
     };
 
     return (
-        <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto', overflow: 'hidden' }}>
+        <div className="max-w-3xl mx-auto bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl">
+            
             {/* PROGRESS HEADER */}
-            <div style={{ background: '#f8fafc', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
+            <div className="bg-white/5 px-10 py-6 flex justify-between border-b border-white/5">
                 {[1, 2, 3].map(s => (
-                    <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: step >= s ? 1 : 0.4 }}>
-                        <div style={{
-                            width: '28px', height: '28px', borderRadius: '50%', background: step >= s ? '#3b82f6' : '#94a3b8',
-                            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold'
-                        }}>{s}</div>
-                        <span style={{ fontSize: '14px', fontWeight: '600' }}>
-                            {s === 1 ? 'Personal' : s === 2 ? 'Card Selection' : 'Consent'}
+                    <div key={s} className={`flex items-center gap-3 transition-opacity duration-300 ${step >= s ? 'opacity-100' : 'opacity-30'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black ring-4 ring-offset-2 ring-offset-slate-900 transition-all ${
+                            step >= s ? 'bg-indigo-500 text-white ring-indigo-500/20' : 'bg-slate-700 text-slate-400 ring-transparent'
+                        }`}>
+                            {s}
+                        </div>
+                        <span className="hidden md:block text-[11px] font-black uppercase tracking-widest text-white">
+                            {s === 1 ? 'Vitals' : s === 2 ? 'Tier Selection' : 'Authorization'}
                         </span>
                     </div>
                 ))}
             </div>
 
-            <form onSubmit={handleSubmit} style={{ padding: '40px' }}>
+            <form onSubmit={handleSubmit} className="p-10">
 
+                {/* STEP 1: PERSONAL/EMPLOYMENT */}
                 {step === 1 && (
-                    <div className="animate-slide">
-                        <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '24px' }}>Employment & Eligibility</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                            <div className="form-group">
-                                <label><PersonBadge /> Full Name</label>
-                                <input type="text" value={formData.fullName} readOnly />
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <header className="mb-8">
+                            <h2 className="text-2xl font-black text-white tracking-tighter italic uppercase">Employment & Eligibility</h2>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Verify your financial standing</p>
+                        </header>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                    <PersonBadge className="text-indigo-400" /> Full Name
+                                </label>
+                                <input 
+                                    className="bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-slate-300 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-not-allowed" 
+                                    type="text" value={formData.fullName} readOnly 
+                                />
                             </div>
-                            <div className="form-group">
-                                <label><Buildings /> Employment Type</label>
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                    <Buildings className="text-indigo-400" /> Employment Type
+                                </label>
                                 <select
+                                    className="bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                                     value={formData.employment}
                                     onChange={e => setFormData({ ...formData, employment: e.target.value })}
                                 >
-                                    <option>Salaried</option>
-                                    <option>Self-Employed</option>
-                                    <option>Entrepreneur</option>
-                                    <option>Student</option>
+                                    <option className="bg-slate-900">Salaried</option>
+                                    <option className="bg-slate-900">Self-Employed</option>
+                                    <option className="bg-slate-900">Entrepreneur</option>
+                                    <option className="bg-slate-900">Student</option>
                                 </select>
                             </div>
-                            <div className="form-group">
-                                <label><CashCoin /> Annual Income (₹)</label>
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                    <CashCoin className="text-indigo-400" /> Annual Income (₹)
+                                </label>
                                 <input
+                                    className="bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                                     type="number"
                                     placeholder="Earnings per year"
                                     value={formData.income}
@@ -82,9 +102,13 @@ const CardApplicationForm = ({ user, onSubmit, onCancel }) => {
                                     required
                                 />
                             </div>
-                            <div className="form-group">
-                                <label><ShieldLock /> PAN Card Number</label>
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                    <ShieldLock className="text-indigo-400" /> PAN Card Number
+                                </label>
                                 <input
+                                    className="bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white font-mono placeholder:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all uppercase"
                                     type="text"
                                     placeholder="ABCDE1234F"
                                     value={formData.pan}
@@ -97,10 +121,15 @@ const CardApplicationForm = ({ user, onSubmit, onCancel }) => {
                     </div>
                 )}
 
+                {/* STEP 2: CARD SELECTION */}
                 {step === 2 && (
-                    <div className="animate-slide">
-                        <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '24px' }}>Choose Your Vajra</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <header className="mb-8">
+                            <h2 className="text-2xl font-black text-white tracking-tighter italic uppercase">Choose Your Vajra</h2>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Select your preferred credit tier</p>
+                        </header>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {cardTypes.map(type => {
                                 const details = getCardDetailsByType(type);
                                 const isSelected = formData.cardType === type;
@@ -108,22 +137,24 @@ const CardApplicationForm = ({ user, onSubmit, onCancel }) => {
                                     <div
                                         key={type}
                                         onClick={() => setFormData({ ...formData, cardType: type })}
-                                        style={{
-                                            border: isSelected ? '2.5px solid #3b82f6' : '1.5px solid #e2e8f0',
-                                            borderRadius: '16px', padding: '20px', cursor: 'pointer',
-                                            background: isSelected ? '#eff6ff' : 'white',
-                                            transition: 'all 0.2s'
-                                        }}
+                                        className={`group relative p-6 rounded-2xl cursor-pointer border-2 transition-all duration-300 ${
+                                            isSelected 
+                                            ? 'bg-indigo-500/10 border-indigo-500 shadow-[0_0_30px_rgba(99,102,241,0.15)]' 
+                                            : 'bg-white/5 border-white/5 hover:border-white/20'
+                                        }`}
                                     >
-                                        <div style={{ height: '80px', background: details.color, borderRadius: '8px', marginBottom: '16px' }}></div>
-                                        <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 8px 0' }}>{type}</h3>
-                                        <div style={{ fontSize: '12px', color: '#64748b' }}>
+                                        <div 
+                                            className="h-24 rounded-lg mb-4 opacity-80 group-hover:opacity-100 transition-opacity shadow-lg"
+                                            style={{ background: details.color }}
+                                        ></div>
+                                        <h3 className="text-sm font-black text-white uppercase tracking-widest mb-3">{type}</h3>
+                                        <ul className="space-y-2">
                                             {details.benefits.map((b, i) => (
-                                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-                                                    <Check2Circle style={{ color: '#10b981' }} /> {b}
-                                                </div>
+                                                <li key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                                    <Check2Circle className="text-emerald-500 shrink-0" /> {b}
+                                                </li>
                                             ))}
-                                        </div>
+                                        </ul>
                                     </div>
                                 );
                             })}
@@ -131,73 +162,48 @@ const CardApplicationForm = ({ user, onSubmit, onCancel }) => {
                     </div>
                 )}
 
+                {/* STEP 3: CONSENT */}
                 {step === 3 && (
-                    <div className="animate-slide" style={{ textAlign: 'center' }}>
-                        <div style={{ width: '80px', height: '80px', background: '#dcfce7', color: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                            <HandThumbsUp size={40} />
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300 text-center py-6">
+                        <div className="w-20 h-20 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(16,185,129,0.1)]">
+                            <HandThumbsUp size={36} />
                         </div>
-                        <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '12px' }}>Final Confirmation</h2>
-                        <p style={{ color: '#64748b', marginBottom: '32px' }}>
-                            By submitting, you agree to our credit assessment policy and terms of service.
-                            Your application will be reviewed within 24 hours.
+                        <h2 className="text-2xl font-black text-white tracking-tighter italic uppercase mb-4">Final Authorization</h2>
+                        <p className="text-slate-400 text-sm max-w-md mx-auto mb-10 leading-relaxed font-medium">
+                            By clicking confirm, you authorize the credit department to run a secure assessment. 
+                            Results typically materialize within <span className="text-white font-bold italic underline">24 standard hours</span>.
                         </p>
-                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer' }}>
+                        
+                        <label className="inline-flex items-center gap-4 px-6 py-4 bg-white/5 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
                             <input
                                 type="checkbox"
+                                className="w-5 h-5 rounded border-white/10 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
                                 checked={formData.agreed}
                                 onChange={e => setFormData({ ...formData, agreed: e.target.checked })}
                                 required
                             />
-                            <span style={{ fontSize: '14px', fontWeight: '600' }}>I agree to the Terms & Conditions</span>
+                            <span className="text-xs font-black text-white uppercase tracking-widest">Accept Terms & Conditions</span>
                         </label>
                     </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
+                {/* FOOTER ACTIONS */}
+                <div className="flex justify-between mt-12 pt-8 border-t border-white/5">
                     <button
                         type="button"
                         onClick={step === 1 ? onCancel : prevStep}
-                        style={{ padding: '12px 24px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', fontWeight: '600', cursor: 'pointer' }}
+                        className="px-6 py-3 rounded-xl border border-white/10 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white/5 hover:text-white transition-all flex items-center gap-2"
                     >
-                        {step === 1 ? 'Cancel' : <><ChevronLeft /> Back</>}
+                        {step === 1 ? 'Abort' : <><ChevronLeft /> Back</>}
                     </button>
                     <button
                         type="submit"
-                        style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '12px 32px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        className="px-8 py-3 bg-indigo-500 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 hover:shadow-indigo-500/40 transition-all flex items-center gap-2"
                     >
-                        {step === 3 ? 'Confirm & Apply' : <>Next <ChevronRight /></>}
+                        {step === 3 ? 'Deploy Application' : <>Continue <ChevronRight /></>}
                     </button>
                 </div>
             </form>
-
-            <style>{`
-                .form-group {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                }
-                .form-group label {
-                    font-size: 13px;
-                    font-weight: 700;
-                    color: #64748b;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-                .form-group input, .form-group select {
-                    padding: 12px;
-                    border: 1.5px solid #e2e8f0;
-                    border-radius: 10px;
-                    font-size: 14px;
-                }
-                .animate-slide {
-                    animation: slideIn 0.3s ease-out;
-                }
-                @keyframes slideIn {
-                    from { opacity: 0; transform: translateX(20px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-            `}</style>
         </div>
     );
 };

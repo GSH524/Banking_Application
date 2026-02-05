@@ -18,10 +18,10 @@ export default function FeaturesShowcase() {
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                entries.forEach((entry, index) => {
+                entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-10');
                     }
                 });
             },
@@ -40,251 +40,130 @@ export default function FeaturesShowcase() {
             emoji: '🔐',
             title: 'Secure Banking',
             description: 'RBI compliant with 256-bit encryption. Your money is safe with industry-leading security.',
-            color: '#10b981',
-            animation: 'pulse',
+            color: 'from-emerald-500',
+            shadow: 'hover:shadow-emerald-500/20',
+            border: 'hover:border-emerald-500',
             path: '/user/dashboard'
         },
         {
             emoji: '💸',
             title: 'Easy Payments',
             description: 'Easy payments with one tap. UPI, transfers, and request money flow made simple.',
-            color: '#3b82f6',
-            animation: 'lift',
+            color: 'from-blue-500',
+            shadow: 'hover:shadow-blue-500/20',
+            border: 'hover:border-blue-500',
             path: '/user/payments'
         },
         {
             emoji: '🎁',
             title: 'Cashback & Rewards',
             description: 'Get cashback and rewards. Earn points on every spend and redeem for exciting offers.',
-            color: '#8b5cf6',
-            animation: 'slide',
+            color: 'from-violet-500',
+            shadow: 'hover:shadow-violet-500/20',
+            border: 'hover:border-violet-500',
             path: '/user/rewards'
         },
         {
             emoji: '🌎',
             title: 'Global Transfers',
             description: 'Send & receive from abroad. Competitive rates and instant international transfers.',
-            color: '#f59e0b',
-            animation: 'glow',
+            color: 'from-amber-500',
+            shadow: 'hover:shadow-amber-500/20',
+            border: 'hover:border-amber-500',
             path: '/user/international'
         },
         {
             emoji: '🤖',
             title: 'AI Risk Monitoring',
             description: 'Advanced fraud detection and real-time alerts to protect your account 24/7.',
-            color: '#ef4444',
-            animation: 'bounce',
+            color: 'from-red-500',
+            shadow: 'hover:shadow-red-500/20',
+            border: 'hover:border-red-500',
             path: '/user/dashboard'
         }
     ];
 
     return (
-        <div id="features" style={styles.container}>
-            <div style={styles.header}>
-                <h2 style={styles.title}>Why Choose VajraBank?</h2>
-                <p style={styles.subtitle}>
+        <section id="features" className="relative bg-[#080f25] py-20 px-6 overflow-hidden">
+            {/* Header */}
+            <div className="relative z-10 text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent">
+                    Why Choose VajraBank?
+                </h2>
+                <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
                     Experience banking that's secure, smart, and designed for your financial success
                 </p>
             </div>
 
-            <div style={styles.grid}>
+            {/* Grid */}
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                 {features.map((feature, index) => (
                     <div
                         key={index}
                         ref={(el) => (cardsRef.current[index] = el)}
-                        style={{
-                            ...styles.card,
-                            animationDelay: `${index * 0.1}s`,
-                            opacity: 0,
-                            transform: 'translateY(20px)',
-                            transition: 'all 0.6s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-12px) scale(1.02)';
-                            e.currentTarget.style.boxShadow = `0 25px 50px -12px rgba(${hexToRgb(feature.color)}, 0.5)`;
-                            e.currentTarget.style.borderColor = feature.color;
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.4)';
-                            e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.2)';
-                        }}
                         onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const x = e.clientX - rect.left;
-                            const y = e.clientY - rect.top;
-
-                            const ripple = document.createElement('span');
-                            ripple.style.position = 'absolute';
-                            ripple.style.left = `${x}px`;
-                            ripple.style.top = `${y}px`;
-                            ripple.style.width = '100px';
-                            ripple.style.height = '100px';
-                            ripple.style.background = 'rgba(255, 255, 255, 0.3)';
-                            ripple.style.borderRadius = '50%';
-                            ripple.style.transform = 'translate(-50%, -50%) scale(0)';
-                            ripple.style.animation = 'ripple 0.6s linear';
-                            ripple.style.pointerEvents = 'none';
-
-                            e.currentTarget.appendChild(ripple);
-                            setTimeout(() => ripple.remove(), 600);
-
+                            createRipple(e);
                             setTimeout(() => handleFeatureClick(feature.path), 200);
                         }}
+                        className={`group relative p-8 rounded-[20px] bg-slate-900/60 backdrop-blur-xl border border-blue-500/10 
+                                   shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden
+                                   opacity-0 translate-y-10 hover:-translate-y-3 ${feature.shadow} ${feature.border}`}
                     >
-                        <div
-                            style={{
-                                ...styles.iconContainer,
-                                background: `linear-gradient(135deg, ${feature.color}22 0%, ${feature.color}11 100%)`
-                            }}
-                        >
-                            <span style={styles.emoji}>{feature.emoji}</span>
+                        {/* Icon Container */}
+                        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br ${feature.color} bg-opacity-10`}>
+                            <span className="text-4xl animate-bounce group-hover:animate-pulse">
+                                {feature.emoji}
+                            </span>
                         </div>
-                        <h3 style={styles.featureTitle}>{feature.title}</h3>
-                        <p style={styles.featureDescription}>{feature.description}</p>
-                        <div
-                            style={{
-                                ...styles.colorBar,
-                                background: feature.color
-                            }}
-                        />
+
+                        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
+                            {feature.title}
+                        </h3>
+                        
+                        <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                            {feature.description}
+                        </p>
+
+                        {/* Bottom Color Bar */}
+                        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${feature.color} to-transparent opacity-50 group-hover:opacity-100 transition-opacity`} />
                     </div>
                 ))}
             </div>
 
             {/* Decorative background elements */}
-            <div style={styles.bgGradient1} />
-            <div style={styles.bgGradient2} />
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[100px] pointer-events-none rounded-full" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[100px] pointer-events-none rounded-full" />
 
-            <style>
-                {`
-                    @keyframes ripple {
-                        to {
-                            transform: translate(-50%, -50%) scale(4);
-                            opacity: 0;
-                        }
-                    }
-                    @keyframes float {
-                        0%, 100% { transform: translateY(0); }
-                        50% { transform: translateY(-10px); }
-                    }
-                `}
-            </style>
-        </div>
+            <style>{`
+                .ripple {
+                    position: absolute;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple-effect 0.6s linear;
+                    pointer-events: none;
+                }
+                @keyframes ripple-effect {
+                    to { transform: scale(4); opacity: 0; }
+                }
+            `}</style>
+        </section>
     );
 }
 
-// Helper function to convert hex to RGB
-const hexToRgb = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-        ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
-        : '59, 130, 246';
-};
+// Separate logic for cleaner JSX
+function createRipple(event) {
+    const button = event.currentTarget;
+    const circle = document.createElement("span");
+    const diameter = Math.max(button.clientWidth, button.clientHeight);
+    const radius = diameter / 2;
 
-const styles = {
-    container: {
-        position: 'relative',
-        background: '#080f25',
-        padding: '80px 20px',
-        overflow: 'hidden'
-    },
-    header: {
-        textAlign: 'center',
-        marginBottom: '60px',
-        position: 'relative',
-        zIndex: 1
-    },
-    title: {
-        color: '#fff',
-        fontSize: '42px',
-        fontWeight: '700',
-        marginBottom: '16px',
-        background: 'linear-gradient(135deg, #fff 0%, #94a3b8 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent'
-    },
-    subtitle: {
-        color: '#94a3b8',
-        fontSize: '18px',
-        maxWidth: '600px',
-        margin: '0 auto',
-        lineHeight: '1.6'
-    },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '30px',
-        maxWidth: '1400px',
-        margin: '0 auto',
-        position: 'relative',
-        zIndex: 1
-    },
-    card: {
-        background: 'rgba(12, 20, 44, 0.6)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(59, 130, 246, 0.2)',
-        borderRadius: '20px',
-        padding: '32px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer',
-        position: 'relative',
-        overflow: 'hidden'
-    },
-    iconContainer: {
-        width: '80px',
-        height: '80px',
-        borderRadius: '20px',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: '24px',
-        position: 'relative'
-    },
-    emoji: {
-        fontSize: '40px',
-        animation: 'float 3s ease-in-out infinite'
-    },
-    featureTitle: {
-        color: '#fff',
-        fontSize: '24px',
-        fontWeight: '700',
-        marginBottom: '12px'
-    },
-    featureDescription: {
-        color: '#94a3b8',
-        fontSize: '15px',
-        lineHeight: '1.6',
-        marginBottom: '20px'
-    },
-    colorBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '4px',
-        borderRadius: '0 0 20px 20px'
-    },
-    bgGradient1: {
-        position: 'absolute',
-        top: '-10%',
-        left: '-10%',
-        width: '40%',
-        height: '40%',
-        background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%)',
-        filter: 'blur(60px)',
-        pointerEvents: 'none'
-    },
-    bgGradient2: {
-        position: 'absolute',
-        bottom: '-10%',
-        right: '-10%',
-        width: '40%',
-        height: '40%',
-        background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
-        filter: 'blur(60px)',
-        pointerEvents: 'none'
-    }
-};
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
+    circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
+    circle.classList.add("ripple");
+
+    const ripple = button.getElementsByClassName("ripple")[0];
+    if (ripple) ripple.remove();
+    button.appendChild(circle);
+}

@@ -6,7 +6,6 @@ const CreditUtilization = ({ used, limit }) => {
     const utilization = limit > 0 ? (used / limit) * 100 : 0;
     const cappedUtilization = Math.min(100, Math.max(0, utilization));
 
-    // Animation effect on load
     useEffect(() => {
         const timer = setTimeout(() => {
             setProgress(cappedUtilization);
@@ -15,10 +14,10 @@ const CreditUtilization = ({ used, limit }) => {
     }, [cappedUtilization]);
 
     const getStatusLabel = (val) => {
-        if (val <= 30) return { label: 'Excellent', color: '#10b981' };
-        if (val <= 50) return { label: 'Good', color: '#3b82f6' };
-        if (val <= 75) return { label: 'High Usage', color: '#f59e0b' };
-        return { label: 'Critical', color: '#ef4444' };
+        if (val <= 30) return { label: 'Excellent', color: 'text-emerald-400', stroke: '#10b981', bg: 'bg-emerald-400/10' };
+        if (val <= 50) return { label: 'Good', color: 'text-blue-400', stroke: '#3b82f6', bg: 'bg-blue-400/10' };
+        if (val <= 75) return { label: 'High Usage', color: 'text-amber-400', stroke: '#f59e0b', bg: 'bg-amber-400/10' };
+        return { label: 'Critical', color: 'text-rose-500', stroke: '#f43f5e', bg: 'bg-rose-500/10' };
     };
 
     const status = getStatusLabel(utilization);
@@ -28,210 +27,86 @@ const CreditUtilization = ({ used, limit }) => {
 
     if (!limit || limit === 0) {
         return (
-            <div className="glass-card-metrics" style={styles.emptyCard}>
-                <div style={styles.emptyIcon}>💳</div>
-                <h4 style={styles.emptyTitle}>No active credit card yet</h4>
-                <p style={styles.emptySub}>Apply for a Vajra credit card to start building your score.</p>
+            <div className="h-[350px] p-10 flex flex-col items-center justify-center text-center bg-slate-900/40 backdrop-blur-xl rounded-[2rem] border border-dashed border-white/10 group hover:border-indigo-500/50 transition-all duration-500">
+                <div className="text-5xl mb-6 opacity-30 group-hover:scale-110 group-hover:opacity-100 transition-all duration-500">💳</div>
+                <h4 className="text-white text-lg font-black uppercase tracking-tighter italic">No Active Credit</h4>
+                <p className="text-slate-500 text-sm mt-2 max-w-[200px] leading-relaxed font-medium">Apply for a Vajra asset to initialize credit monitoring.</p>
             </div>
         );
     }
 
     return (
-        <div className="glass-card-metrics" style={styles.card}>
-            <div style={styles.header}>
-                <h4 style={styles.title}>CREDIT UTILIZATION</h4>
-                <div className="tooltip-container" style={styles.tooltipIcon}>
-                    <InfoCircle size={14} />
-                    <span className="tooltip-text">Lower utilization improves your credit score</span>
+        <div className="h-[350px] p-6 flex flex-col justify-between bg-slate-900/60 backdrop-blur-xl rounded-[2rem] border border-white/5 hover:border-indigo-500/30 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/60 transition-all duration-500 group">
+            
+            {/* HEADER */}
+            <div className="flex justify-between items-center">
+                <h4 className="text-slate-500 text-[10px] font-black tracking-[0.2em] uppercase">Credit Utilization</h4>
+                <div className="relative group/tooltip cursor-help">
+                    <InfoCircle size={14} className="text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 p-2 bg-slate-950 text-white text-[10px] font-bold text-center rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all border border-white/10 shadow-xl z-20">
+                        Lower utilization improves your tactical score.
+                    </span>
                 </div>
             </div>
 
-            <div style={styles.visualContainer}>
-                <svg width="180" height="180" viewBox="0 0 180 180">
+            {/* PROGRESS RING */}
+            <div className="relative flex items-center justify-center flex-1">
+                <svg width="180" height="180" viewBox="0 0 180 180" className="drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]">
                     {/* Background Track */}
                     <circle
                         cx="90" cy="90" r={radius}
                         fill="none"
-                        stroke="rgba(255,255,255,0.05)"
+                        stroke="currentColor"
                         strokeWidth="12"
+                        className="text-white/[0.03]"
                     />
                     {/* Progress Ring */}
                     <circle
                         cx="90" cy="90" r={radius}
                         fill="none"
-                        stroke={status.color}
+                        stroke={status.stroke}
                         strokeWidth="12"
                         strokeDasharray={circumference}
+                        className="transition-all duration-1000 ease-out"
                         style={{
                             strokeDashoffset: offset,
-                            transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease',
-                            strokeLinecap: 'round'
+                            strokeLinecap: 'round',
                         }}
                         transform="rotate(-90 90 90)"
                     />
                 </svg>
 
-                <div style={styles.centerContent}>
-                    <span style={{ ...styles.percent, color: status.color }}>{Math.round(utilization)}%</span>
-                    <span style={styles.statusLabel}>{status.label}</span>
+                <div className="absolute flex flex-col items-center justify-center text-center">
+                    <span className={`text-4xl font-black italic tracking-tighter leading-none ${status.color}`}>
+                        {Math.round(utilization)}%
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1">
+                        {status.label}
+                    </span>
                 </div>
             </div>
 
-            <div style={styles.details}>
-                <div style={styles.detailRow}>
-                    <span style={styles.detailLabel}>Used Amount</span>
-                    <span style={styles.detailValue}>₹{used.toLocaleString()}</span>
+            {/* DETAILS FOOTER */}
+            <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Deployed Funds</span>
+                    <span className="text-xs font-bold text-white font-mono">₹{used.toLocaleString()}</span>
                 </div>
-                <div style={styles.detailRow}>
-                    <span style={styles.detailLabel}>Total Limit</span>
-                    <span style={styles.detailValue}>₹{limit.toLocaleString()}</span>
+                <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Max Capacity</span>
+                    <span className="text-xs font-bold text-slate-300 font-mono">₹{limit.toLocaleString()}</span>
+                </div>
+                
+                {/* Visual indicator bar */}
+                <div className="h-1 w-full bg-white/5 rounded-full mt-2 overflow-hidden">
+                    <div 
+                        className={`h-full transition-all duration-1000 ${status.bg}`} 
+                        style={{ width: `${progress}%`, backgroundColor: status.stroke }}
+                    />
                 </div>
             </div>
-
-            <style>{`
-                .glass-card-metrics {
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
-                }
-                .glass-card-metrics:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-                    border-color: rgba(59, 130, 246, 0.4) !important;
-                }
-                .tooltip-container {
-                    position: relative;
-                    cursor: help;
-                }
-                .tooltip-text {
-                    visibility: hidden;
-                    width: 140px;
-                    background-color: #0c142c;
-                    color: #fff;
-                    text-align: center;
-                    border-radius: 6px;
-                    padding: 8px;
-                    position: absolute;
-                    z-index: 10;
-                    bottom: 125%;
-                    left: 50%;
-                    margin-left: -70px;
-                    opacity: 0;
-                    transition: opacity 0.3s;
-                    font-size: 11px;
-                    border: 1px solid rgba(255,255,255,0.1);
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-                }
-                .tooltip-container:hover .tooltip-text {
-                    visibility: visible;
-                    opacity: 1;
-                }
-            `}</style>
         </div>
     );
-};
-
-const styles = {
-    card: {
-        background: 'rgba(12, 20, 44, 0.6)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '20px',
-        padding: '24px',
-        border: '1px solid rgba(255,255,255,0.08)',
-        height: '350px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between'
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-    },
-    title: {
-        color: '#94a3b8',
-        fontSize: '12px',
-        fontWeight: '700',
-        letterSpacing: '1px',
-        margin: 0
-    },
-    tooltipIcon: {
-        color: '#64748b'
-    },
-    visualContainer: {
-        position: 'relative',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flex: 1
-    },
-    centerContent: {
-        position: 'absolute',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    percent: {
-        fontSize: '38px',
-        fontWeight: '800',
-        lineHeight: 1
-    },
-    statusLabel: {
-        fontSize: '11px',
-        fontWeight: '600',
-        color: '#94a3b8',
-        textTransform: 'uppercase',
-        marginTop: '4px',
-        letterSpacing: '0.5px'
-    },
-    details: {
-        background: 'rgba(255,255,255,0.03)',
-        borderRadius: '12px',
-        padding: '12px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px'
-    },
-    detailRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '13px'
-    },
-    detailLabel: {
-        color: '#64748b'
-    },
-    detailValue: {
-        color: '#f8fafc',
-        fontWeight: '600'
-    },
-    emptyCard: {
-        background: 'rgba(12, 20, 44, 0.4)',
-        borderRadius: '20px',
-        padding: '40px 24px',
-        border: '1px dashed rgba(255,255,255,0.1)',
-        height: '350px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center'
-    },
-    emptyIcon: {
-        fontSize: '48px',
-        marginBottom: '20px',
-        opacity: 0.5
-    },
-    emptyTitle: {
-        color: '#f8fafc',
-        fontSize: '18px',
-        fontWeight: '700',
-        margin: '0 0 10px 0'
-    },
-    emptySub: {
-        color: '#64748b',
-        fontSize: '14px',
-        margin: 0,
-        lineHeight: '1.5'
-    }
 };
 
 export default CreditUtilization;

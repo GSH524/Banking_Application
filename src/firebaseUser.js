@@ -3,14 +3,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyDlfAL0X0QAme6J1kUt9Mrw-x56hYpzbIA",
-  authDomain: "vajra-bank.firebaseapp.com",
-  projectId: "vajra-bank",
-  storageBucket: "vajra-bank.firebasestorage.app",
-  messagingSenderId: "182172077360",
-  appId: "1:182172077360:web:13a9e819df0b479b64ccf5"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase as a named app to avoid conflicts

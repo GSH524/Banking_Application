@@ -4,25 +4,19 @@ import { useAds } from '../context/AdContext';
 import { Megaphone, ArrowRight, X } from 'react-bootstrap-icons';
 import { adService } from '../services/adService';
 
-
 export default function AdBanner({ page }) {
     const { ads: allAds, loading, getAdsForPage } = useAds();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
-    // If page prop is not provided, try to infer it from URL (legacy support)
     const effectivePage = page || (window.location.pathname === '/' ? 'home' : window.location.pathname.substring(1).toLowerCase());
-
     const ads = getAdsForPage(effectivePage);
 
-    // Handle auto-rotation
     useEffect(() => {
         if (ads.length <= 1) return;
-
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % ads.length);
         }, 8000);
-
         return () => clearInterval(interval);
     }, [ads.length]);
 
@@ -31,65 +25,78 @@ export default function AdBanner({ page }) {
     const currentAd = ads[currentIndex];
 
     return (
-        <div className="ad-banner-wrapper">
+        <div className="w-full max-w-7xl mx-auto px-4 mb-8">
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentAd.id}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.02 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.5 }}
-                    className="ad-banner-container glass-card"
-                    style={{
-                        backgroundImage: `linear-gradient(90deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.7) 100%), url(${currentAd.imageUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                    }}
+                    className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl min-h-[140px] md:min-h-[120px] group"
                 >
-                    <div className="ad-content">
-                        <div className="ad-header d-flex justify-content-between align-items-center">
-                            <span className="sponsored-label">
-                                <Megaphone className="me-1" /> SPONSORED
+                    {/* Background Layer with Overlay */}
+                    <div 
+                        className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                        style={{ backgroundImage: `url(${currentAd.imageUrl})` }}
+                    />
+                    <div className="absolute inset-0 z-10 bg-gradient-to-r from-slate-950 via-slate-900/90 to-transparent" />
+
+                    {/* Content Layer */}
+                    <div className="relative z-20 p-5 md:px-8 flex flex-col justify-between h-full">
+                        
+                        {/* Header */}
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="flex items-center gap-2 text-[10px] font-black tracking-[0.2em] text-blue-400 uppercase">
+                                <Megaphone className="animate-pulse" /> Sponsored
                             </span>
                             <button
                                 onClick={() => setIsVisible(false)}
-                                className="btn btn-link text-white opacity-50 p-0 border-0"
-                                style={{ transform: 'translateY(-2px)' }}
+                                className="text-white/40 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
-                        <div className="ad-body mt-1">
-                            <div className="d-flex flex-column">
-                                <h3 className="ad-title">{currentAd.title}</h3>
+                        {/* Body */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex flex-col max-w-2xl">
+                                <h3 className="text-lg md:text-xl font-bold text-white leading-tight tracking-tight">
+                                    {currentAd.title}
+                                </h3>
                                 {currentAd.businessName && (
-                                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
-                                        Featured Partner: {currentAd.businessName}
+                                    <span className="text-xs text-slate-400 mt-1 font-medium">
+                                        Featured Partner: <span className="text-blue-300">{currentAd.businessName}</span>
                                     </span>
                                 )}
                             </div>
-                            <div className="ad-actions">
+
+                            <div className="flex items-center">
                                 <a
                                     href={currentAd.redirectUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="ad-cta-btn"
                                     onClick={() => adService.trackClick(currentAd.id)}
+                                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all hover:gap-4 shadow-lg shadow-blue-900/20 active:scale-95"
                                 >
-                                    Learn More <ArrowRight className="ms-2" />
+                                    Learn More <ArrowRight size={16} />
                                 </a>
                             </div>
                         </div>
                     </div>
 
+                    {/* Indicators (Bottom Dots) */}
                     {ads.length > 1 && (
-                        <div className="ad-indicators">
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex gap-1.5">
                             {ads.map((_, idx) => (
-                                <div
+                                <button
                                     key={idx}
-                                    className={`indicator-dot ${idx === currentIndex ? 'active' : ''}`}
                                     onClick={() => setCurrentIndex(idx)}
+                                    className={`h-1 rounded-full transition-all duration-300 ${
+                                        idx === currentIndex 
+                                        ? 'w-6 bg-blue-500' 
+                                        : 'w-1.5 bg-white/20 hover:bg-white/40'
+                                    }`}
                                 />
                             ))}
                         </div>

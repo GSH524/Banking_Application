@@ -30,8 +30,8 @@ export default function Contact() {
     setLoading(true);
 
     emailjs.send(
-      "service_e0q1m9r",
-      "template_nxm4prh",
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
       {
         name: form.name,
         email: form.email,
@@ -39,7 +39,7 @@ export default function Contact() {
         subject: form.subject,
         message: form.message,
       },
-      import.meta.env.VITE_EMAILJS_PUBLIC
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY
     )
       .then(
         () => {
