@@ -13,6 +13,10 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import PartnerPlans from "./pages/PartnerPlans";
+import PublicCards from "./components/Cards";
+import Investments from "./components/Investments";
+import PublicLoans from "./components/LoanRules";
+import Savings from "./components/Savings";
 
 /* ADMIN */
 import AdminLogin from "./pages/AdminLogin";
@@ -76,6 +80,11 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/partner-plans" element={<PartnerPlans />} />
+              <Route path="/invest" element={<Investments />} />
+              <Route path="/savings" element={<Savings />} />
+              <Route path="/loans" element={<PublicLoans />} />
+              <Route path="/cards" element={<PublicCards />} />
+
 
               {/* 🛠️ TOOLS & CALCULATORS */}
               <Route path="/tools">
