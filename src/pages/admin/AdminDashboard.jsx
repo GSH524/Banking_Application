@@ -76,7 +76,7 @@ export default function AdminDashboard() {
   /* -------------------- RENDER LOGIC -------------------- */
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center">
+    <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="relative">
         <div className="w-20 h-20 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
         <ShieldCheck className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-500 animate-pulse" size={30} />
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
   );
 
   if (error) return (
-    <div className="min-h-screen bg-[#0a0c10] flex items-center justify-center p-6 font-['Outfit']">
+    <div className="min-h-screen flex items-center justify-center p-6 font-['Outfit']">
       <div className="bg-rose-500/5 border border-rose-500/20 p-8 rounded-[2rem] max-w-md w-full text-center backdrop-blur-xl">
         <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Activity size={32} />
@@ -106,35 +106,11 @@ export default function AdminDashboard() {
   );
 
   return (
-    <main className="min-h-screen bg-[#0a0c10] text-slate-200 font-['Outfit'] selection:bg-blue-500/30">
+    <div className="w-full h-full bg-gradient-to-br from-[#0a0c10] to-[#0f1218] text-slate-200 font-['Outfit'] selection:bg-blue-500/30">
       
-      {/* 1. TOP NAV / TELEMETRY BAR */}
-      <div className="bg-[#0f1218]/80 backdrop-blur-md border-b border-white/5 px-8 py-3 flex justify-between items-center sticky top-0 z-50">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></div>
-            Mainframe Live
-          </div>
-          <div className="h-4 w-[1px] bg-white/10"></div>
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            <CpuFill className="text-blue-500" />
-            Node: {userDB.app.options.projectId.slice(0, 8)}
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-6">
-           <div className="text-[10px] font-mono text-slate-600 hidden md:block">
-            LATENCY: 24ms | SYNC: {new Date().toLocaleTimeString()}
-          </div>
-          <button className="text-slate-500 hover:text-rose-400 transition-colors">
-            <BoxArrowRight size={18} />
-          </button>
-        </div>
-      </div>
-
       <div className="p-6 md:p-10 max-w-[1700px] mx-auto">
         
-        {/* 2. PAGE HEADER */}
+        {/* PAGE HEADER */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -164,7 +140,7 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {/* 3. CORE CONTENT AREA */}
+        {/* CORE CONTENT AREA */}
         <div className="relative group">
           {/* Decorative Corner Glows */}
           <div className="absolute -top-12 -left-12 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -183,7 +159,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* 4. DATA COMPLIANCE FOOTER */}
+        {/* DATA COMPLIANCE FOOTER */}
         <footer className="mt-12 py-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4 text-[10px] text-slate-600 font-bold uppercase tracking-widest">
             <span>&copy; 2026 Nexus Banking Systems</span>
@@ -195,6 +171,6 @@ export default function AdminDashboard() {
           </div>
         </footer>
       </div>
-    </main>
+    </div>
   );
 }

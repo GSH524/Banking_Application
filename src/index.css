@@ -1164,21 +1164,111 @@ footer {
   }
 }
 
+/* ================= ADMIN LAYOUT ================= */
 .admin-layout {
   display: flex;
   height: 100vh;
-  background: #f8fafc;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
 }
 
-/* .sidebar {
-  width: 240px;
-  background: #0b1220;
-  color: white;
-  padding: 20px;
+.admin-layout.sidebar-open {
+  overflow: hidden;
+}
+
+.admin-layout > aside {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 288px;
+  background: #020617;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 70;
+  flex-shrink: 0;
+}
+
+.admin-layout > aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-layout > aside::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.admin-layout > aside::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.4);
+  border-radius: 3px;
+}
+
+.admin-layout > aside::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.6);
+}
+
+@media (max-width: 1024px) {
+  .admin-layout > aside {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 70;
+  }
+
+  .admin-layout.sidebar-open > aside {
+    transform: translateX(0);
+  }
+}
+
+.admin-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-} */
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  margin-left: 288px;
+}
+
+@media (max-width: 1024px) {
+  .admin-main {
+    margin-left: 0;
+  }
+}
+
+.admin-main > nav {
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.admin-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+}
+
+.admin-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-content::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.admin-content::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 4px;
+}
+
+.admin-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.6);
+}
 
 .sidebar ul {
   list-style: none;
@@ -1203,11 +1293,35 @@ footer {
   padding-top: 12px;
 }
 
-/* .dashboard {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-} */
+/* ================= DASHBOARD PAGES ================= */
+
+.admin-content,
+.user-content {
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .admin-content,
+  .user-content {
+    padding: 16px;
+  }
+}
+
+/* Dashboard Page Container */
+.dashboard-page,
+.dashboard-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Content Wrapper */
+.dashboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
 
 .stats-grid {
   display: grid;
@@ -1225,6 +1339,40 @@ footer {
 .stat-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* ================= PAGE CONTENT STYLING ================= */
+
+/* For pages inside admin-content and user-content */
+.admin-content > *,
+.user-content > * {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure all pages have proper min-height within the content area */
+.admin-content > div,
+.user-content > div {
+  min-height: auto;
+}
+
+/* Fix for modals and overlays */
+.fixed.inset-0 {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .trend {
@@ -1544,4 +1692,131 @@ footer {
 
 .toggle-password:hover {
   color: #ffffff;
+}
+
+/* ================= USER LAYOUT ================= */
+
+.user-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.user-layout.sidebar-open {
+  overflow: hidden;
+}
+
+.user-layout > aside {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 288px;
+  background: #0f172a;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 70;
+  flex-shrink: 0;
+}
+
+.user-layout > aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-layout > aside::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.user-layout > aside::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 3px;
+}
+
+.user-layout > aside::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.6);
+}
+
+@media (max-width: 1024px) {
+  .user-layout > aside {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 70;
+  }
+
+  .user-layout.sidebar-open > aside {
+    transform: translateX(0);
+  }
+}
+
+.user-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  margin-left: 288px;
+}
+
+@media (max-width: 1024px) {
+  .user-main {
+    margin-left: 0;
+  }
+}
+
+.user-main > nav {
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Scrollbar styling for user content */
+.user-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.user-content::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.user-content::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 4px;
+}
+
+.user-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.6);
+}
+
+/* ================= RESPONSIVE USER LAYOUT ================= */
+
+@media (max-width: 1024px) {
+  .user-layout {
+    flex-direction: column;
+  }
+
+  .user-layout.sidebar-open {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-content {
+    padding: 0;
+  }
 }
