@@ -8,7 +8,7 @@ export default function PublicLayout() {
     return (
         <div className="public-layout public-page">
             <Navbar />
-            <AdBanner />
+            
             <main className="public-content">
                 <Outlet />
             </main>

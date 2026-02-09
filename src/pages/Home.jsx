@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import FeatureCard from "../components/FeatureCard";
 import FeaturesShowcase from "../components/FeaturesShowcase";
 import features from "../data/featuresData";
+import AdBanner from "../components/AdBanner";
 
 const heroImages = [
   "https://cdn.prod.website-files.com/67b7abfbb037e687d0a415ec/67db95411df971225cd735e7_emerging_technologies_in_finance.webp",
@@ -34,6 +35,7 @@ export default function Home() {
 
   return (
     <div className="bg-slate-950 min-h-screen text-slate-300 pb-20 lg:pb-0">
+      <AdBanner />
       {/* ================= HERO SECTION ================= */}
       {/* Adjusted height: h-[85vh] ensures it fits nicely on tall mobile screens */}
       <section className="relative h-[85vh] md:h-[700px] overflow-hidden">

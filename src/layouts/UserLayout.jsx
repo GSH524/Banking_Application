@@ -1,37 +1,26 @@
-import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import UserSidebar from "../components/UserSidebar";
 import UserNavbar from "../components/UserNavbar";
 import { useAuth } from "../context/AuthContext";
 
-
 export default function UserLayout() {
   const { user, logoutUser } = useAuth();
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logoutUser();
-    navigate("/"); // Redirect to home on logout
+    navigate("/");
   };
 
-  const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
-  const closeSidebar = () => setSidebarOpen(false);
-
   return (
-    <div className={`user-layout ${isSidebarOpen ? "sidebar-open" : ""}`}>
-      <UserSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-      <div className="user-main">
-        <UserNavbar
-          user={user}
-          onLogout={handleLogout}
-          onToggleSidebar={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-        />
-        <main className="user-content" onClick={closeSidebar}>
+    <div className="min-h-screen bg-slate-950">
+      {/* Now the Navbar contains all the navigation logic */}
+      <UserNavbar user={user} onLogout={handleLogout} />
+      
+      <main className="user-content p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,14 +1,9 @@
-import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import Sidebar from "../components/Sidebar";
 import AdminNavbar from "../components/AdminNavbar";
-
-
+import { useAuth } from "../context/AuthContext";
 
 export default function AdminLayout() {
   const { admin, logoutAdmin } = useAuth();
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -16,23 +11,16 @@ export default function AdminLayout() {
     navigate("/admin");
   };
 
-  const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
-  const closeSidebar = () => setSidebarOpen(false);
-
   return (
-    <div className={`admin-layout ${isSidebarOpen ? "sidebar-open" : ""}`}>
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-      <div className="admin-main">
-        <AdminNavbar 
-          admin={admin} 
-          onLogout={handleLogout} 
-          onToggleSidebar={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-        />
-        <main className="admin-content" onClick={closeSidebar}>
+    <div className="min-h-screen bg-slate-950 flex flex-col">
+      <AdminNavbar admin={admin} onLogout={handleLogout} />
+      
+      {/* Added pb-20 for mobile so the bottom bar doesn't cover content */}
+      <main className="flex-1 p-4 md:p-8 pb-24 lg:pb-8">
+        <div className="max-w-[1440px] mx-auto">
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
