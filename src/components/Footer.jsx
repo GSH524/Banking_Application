@@ -1,10 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Linkedin, 
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
   ShieldCheck,
   Headset
 } from "react-bootstrap-icons";
@@ -49,16 +49,23 @@ export default function Footer() {
   return (
     <footer className="bg-[#020617] border-t border-white/5 pt-16 pb-8 px-6 font-sans">
       <div className="max-w-7xl mx-auto">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-          
+
           {/* BRAND COLUMN */}
           <div className="space-y-6 text-center md:text-left">
-            <Link to="/" className="inline-block">
+            <Link to="/" className="inline-flex flex-col items-center md:items-start group">
+              {/* LOGO IMAGE STYLE */}
+              <img
+                src="logo.png"
+                alt="VajraBank Logo"
+                className="h-10 w-auto mb-3 object-contain brightness-110 group-hover:scale-105 transition-transform duration-300"
+              />
               <h2 className="text-2xl font-black text-white tracking-tight uppercase">
-                Vajra<span className="text-indigo-500">Bank</span>
+                SRK<span className="text-indigo-500">Bank</span>
               </h2>
             </Link>
+
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto md:mx-0">
               India's most trusted digital bank. Secure, seamless, and
               designed for the modern lifestyle.
@@ -107,12 +114,12 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-center justify-center md:justify-start gap-3">
                 <Headset className="text-indigo-500" />
-                <span className="text-white font-bold text-sm">1800-VAJRA-BANK</span>
+                <span className="text-white font-bold text-sm">1800-SRK-SERVICES</span>
               </div>
               <div className="text-sm space-y-2">
-                <p className="text-slate-400">support@vajrabank.com</p>
+                <p className="text-slate-400">support@srkbank.com</p>
                 <p className="text-slate-500 text-xs leading-relaxed">
-                  VajraBank Tower, BKC, <br />
+                  SRK Tower, BKC, <br />
                   Hyderabad, India 50001
                 </p>
               </div>
@@ -126,17 +133,17 @@ export default function Footer() {
             <ShieldCheck size={14} />
             <span className="text-[10px] uppercase font-black tracking-widest">RBI Regulated Entity</span>
           </div>
-          
+
           <div className="flex flex-col items-center gap-6">
             <p className="text-slate-500 text-[10px] md:text-xs uppercase tracking-[0.1em] font-medium text-center">
               © {currentYear} VajraBank. All Rights Reserved.
             </p>
-            
+
             <div className="flex flex-wrap justify-center gap-8">
               {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((policy) => (
-                <Link 
-                  key={policy} 
-                  to={`/${policy.toLowerCase().replace(/\s+/g, '-')}`} 
+                <Link
+                  key={policy}
+                  to={`/${policy.toLowerCase().replace(/\s+/g, '-')}`}
                   className="text-slate-600 hover:text-indigo-400 text-[10px] uppercase font-bold transition-colors"
                 >
                   {policy}
