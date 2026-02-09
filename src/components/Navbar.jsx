@@ -17,11 +17,14 @@ import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./common/NotificationBell";
 
 export default function Navbar() {
-  const { user, logoutUser } = useAuth();
+  const { user, admin, logoutUser, logoutAdmin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+
+  // Unified Active Account Check
+  const activeAccount = admin || user;
 
   // Handle outside click to close profile dropdown
   useEffect(() => {
@@ -37,39 +40,44 @@ export default function Navbar() {
   const handleLogout = async () => {
     setIsProfileOpen(false);
     setIsMenuOpen(false);
-    await logoutUser();
+    
+    // Clear the specific session based on who is logged in
+    if (admin) {
+      logoutAdmin();
+    } else {
+      await logoutUser();
+    }
+    
     navigate("/");
   };
 
   const getDashboardLink = () => {
-    if (!user) return "/login";
-    if (user.role === 'admin') return "/admin/dashboard";
-    if (user.role === 'partner') return "/partner/dashboard";
+    if (!activeAccount) return "/login";
+    if (activeAccount.role === 'admin') return "/admin/dashboard";
+    if (activeAccount.role === 'partner') return "/partner/dashboard";
     return "/user/dashboard";
   };
 
-  const getInitials = (name) => {
-    if (!name) return "U";
+  const getInitials = (account) => {
+    const name = account.displayName || account.name || account.email || "U";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
-  // Styles for Desktop Links
-  const desktopNavLink = ({ isActive }) => 
+  // NavLink Styles
+  const desktopNavLink = ({ isActive }) =>
     `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
-      isActive 
-        ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]" 
+      isActive
+        ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
         : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
     }`;
 
-  // Styles for Mobile Bottom Tabs
-  const mobileTabLink = ({ isActive }) => 
+  const mobileTabLink = ({ isActive }) =>
     `flex flex-col items-center justify-center gap-1 flex-1 transition-all duration-300 ${
       isActive ? "text-indigo-400 scale-110 font-black" : "text-slate-500 hover:text-slate-300"
     }`;
 
   return (
     <>
-      {/* --- MAIN HEADER (Visible on All Devices) --- */}
       <nav className="sticky top-0 z-[100] flex items-center justify-between px-6 lg:px-12 py-4 bg-[#020617]/80 border-b border-white/5 backdrop-blur-xl">
         
         {/* LOGO */}
@@ -82,7 +90,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* DESKTOP CENTER NAVIGATION (Hidden on Mobile) */}
+        {/* DESKTOP NAVIGATION */}
         <ul className="hidden lg:flex items-center gap-2">
           <li><NavLink to="/" className={desktopNavLink}><House size={16} /> Home</NavLink></li>
           <li><NavLink to="/about" className={desktopNavLink}><InfoCircle size={16} /> About</NavLink></li>
@@ -90,37 +98,48 @@ export default function Navbar() {
           <li><NavLink to="/partner-plans" className={desktopNavLink}><Gem size={16} /> Plans</NavLink></li>
         </ul>
 
-        {/* RIGHT ACTIONS (Profile, Login, Notifications) */}
+        {/* RIGHT ACTIONS */}
         <div className="flex items-center gap-4">
-          {user ? (
+          {activeAccount ? (
             <div className="flex items-center gap-3">
-              {user.role === 'admin' && <NotificationBell user={user} />}
+              {/* Notification Bell (Admins only) */}
+              {activeAccount.role === 'admin' && <NotificationBell user={activeAccount} />}
               
               <div className="relative" ref={profileRef}>
                 <button 
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900 border font-bold text-xs transition-all ${
+                  className={`w-10 h-10 overflow-hidden flex items-center justify-center rounded-xl bg-slate-900 border font-bold text-xs transition-all ${
                     isProfileOpen ? "border-indigo-500 text-white" : "border-white/10 text-indigo-400 hover:border-indigo-500/50"
                   }`}
                 >
-                  {getInitials(user.name || user.email)}
+                  {/* Display user image if available, else Initials */}
+                  {activeAccount.imageUrl ? (
+                    <img src={activeAccount.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    getInitials(activeAccount)
+                  )}
                 </button>
 
                 {/* PROFILE DROPDOWN */}
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-3 w-64 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl py-2 z-[110] animate-in fade-in zoom-in-95 origin-top-right">
                     <div className="px-4 py-3 border-b border-white/5 mb-1">
-                      <p className="text-sm font-bold text-white truncate">{user.name || user.email}</p>
-                      <p className="text-[10px] text-indigo-500 font-black tracking-[0.2em] uppercase">{user.role} Account</p>
+                      <p className="text-sm font-bold text-white truncate">
+                        {activeAccount.displayName || activeAccount.name || activeAccount.email}
+                      </p>
+                      <p className="text-[10px] text-indigo-500 font-black tracking-[0.2em] uppercase">
+                        {activeAccount.role} Account
+                      </p>
                     </div>
+                    
                     <Link to={getDashboardLink()} onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5">
-                      <Grid size={16} /> Dashboard
-                    </Link>
-                    <Link to="/user/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5">
-                      <Gear size={16} /> Settings
-                    </Link>
-                    <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-rose-500 font-bold hover:bg-rose-500/10 mt-1">
-                      <BoxArrowRight size={16} /> Sign Out
+                      <Grid size={16} className="text-indigo-500" /> Dashboard
+                    </Link>            
+                    <button 
+                      onClick={handleLogout} 
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-rose-500 font-bold hover:bg-rose-500/10 border-t border-white/5 mt-1"
+                    >
+                      <BoxArrowRight size={18} /> Sign Out
                     </button>
                   </div>
                 )}
@@ -129,27 +148,26 @@ export default function Navbar() {
           ) : (
             <Link 
               to="/login" 
-              className="group flex items-center gap-2 px-4 py-2 bg-slate-900 border border-white/10 rounded-xl text-slate-300 hover:text-white hover:border-indigo-500/50 transition-all active:scale-95"
+              className="group flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white transition-all active:scale-95 shadow-lg shadow-indigo-600/20"
             >
-              <PersonCircle size={20} className="group-hover:text-indigo-500 transition-colors" />
-              <span className="hidden sm:inline text-sm font-bold">Sign In</span>
+              <PersonCircle size={18} />
+              <span className="text-sm font-bold">Secure Login</span>
             </Link>
           )}
 
-          {/* MOBILE LIST TOGGLE */}
           <button className="lg:hidden p-2 text-slate-400 hover:text-white" onClick={() => setIsMenuOpen(true)}>
             <List size={28} />
           </button>
         </div>
       </nav>
 
-      {/* --- MOBILE SIDE DRAWER (Extra Options) --- */}
+      {/* MOBILE SIDE DRAWER */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-[200] lg:hidden">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setIsMenuOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-72 bg-[#020617] border-l border-white/10 p-6 flex flex-col animate-in slide-in-from-right duration-300">
             <div className="flex justify-between items-center mb-10">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic underline underline-offset-8 decoration-indigo-500">Navigation</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 underline underline-offset-8 decoration-indigo-500">Menu</span>
               <button onClick={() => setIsMenuOpen(false)} className="text-slate-400"><X size={32} /></button>
             </div>
             <div className="flex flex-col gap-2">
@@ -158,9 +176,9 @@ export default function Navbar() {
               <NavLink to="/contact" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><Envelope size={18} /> Contact</NavLink>
               <NavLink to="/partner-plans" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><Gem size={18} /> Partner Plans</NavLink>
               
-              {user && (
-                <Link to={getDashboardLink()} onClick={() => setIsMenuOpen(false)} className="mt-4 flex items-center gap-3 px-4 py-3 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 rounded-xl font-bold">
-                  <Grid size={18} /> Back to Console
+              {activeAccount && (
+                <Link to={getDashboardLink()} onClick={() => setIsMenuOpen(false)} className="mt-4 flex items-center justify-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/20">
+                  <Grid size={18} /> Open Console
                 </Link>
               )}
             </div>
@@ -168,9 +186,8 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* --- MOBILE BOTTOM TAB BAR (Home, About, Contact, Plans) --- */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#020617]/90 backdrop-blur-2xl border-t border-white/5 px-2 py-3 pb-8 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-        
+      {/* MOBILE BOTTOM TAB BAR */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#020617]/90 backdrop-blur-2xl border-t border-white/5 px-2 py-3 pb-8 flex items-center justify-around">
         <NavLink to="/" className={mobileTabLink}>
           <House size={20} />
           <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
@@ -181,8 +198,7 @@ export default function Navbar() {
           <span className="text-[8px] font-black uppercase tracking-widest">About</span>
         </NavLink>
 
-        {/* LOGGED IN CENTER BUTTON */}
-        {user && (
+        {activeAccount && (
           <NavLink to={getDashboardLink()} className={mobileTabLink}>
             <div className="p-3 bg-indigo-600 rounded-2xl text-white -mt-10 shadow-xl shadow-indigo-600/40 border-[6px] border-[#020617]">
               <Grid size={20} />

@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
     if (email === "admin@vajra.com" && password === "Admin123") {
       const adminData = {
         id: 'admin_1', // Match the seeded admin ID
-        name: "Mahesh Kalvakuntla",
+        name: "SRK BANKING SERVICES",
         email,
         role: "admin",
         loginAt: new Date().toISOString(),
