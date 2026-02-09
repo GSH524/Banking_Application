@@ -38,7 +38,7 @@ export default function Home() {
       <AdBanner />
       {/* ================= HERO SECTION ================= */}
       {/* Adjusted height: h-[85vh] ensures it fits nicely on tall mobile screens */}
-      <section className="relative h-[85vh] md:h-[700px] overflow-hidden">
+      <section className="relative h-[85vh] md:h-175 overflow-hidden">
         <div 
           className="absolute inset-0 flex transition-transform duration-1000 ease-in-out"
           style={{ transform: `translateX(-${slide * 100}%)` }}
@@ -53,7 +53,7 @@ export default function Home() {
         </div>
 
         <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[1px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/20 to-transparent" />
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6 max-w-5xl mx-auto pt-10">
           <h1 className="text-3xl md:text-6xl font-extrabold text-white mb-4 leading-[1.2]">
