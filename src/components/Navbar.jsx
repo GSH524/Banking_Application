@@ -40,14 +40,14 @@ export default function Navbar() {
   const handleLogout = async () => {
     setIsProfileOpen(false);
     setIsMenuOpen(false);
-    
+
     // Clear the specific session based on who is logged in
     if (admin) {
       logoutAdmin();
     } else {
       await logoutUser();
     }
-    
+
     navigate("/");
   };
 
@@ -65,28 +65,46 @@ export default function Navbar() {
 
   // NavLink Styles
   const desktopNavLink = ({ isActive }) =>
-    `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
-      isActive
-        ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
-        : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+    `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${isActive
+      ? "text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]"
+      : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
     }`;
 
   const mobileTabLink = ({ isActive }) =>
-    `flex flex-col items-center justify-center gap-1 flex-1 transition-all duration-300 ${
-      isActive ? "text-indigo-400 scale-110 font-black" : "text-slate-500 hover:text-slate-300"
+    `flex flex-col items-center justify-center gap-1 flex-1 transition-all duration-300 ${isActive ? "text-indigo-400 scale-110 font-black" : "text-slate-500 hover:text-slate-300"
     }`;
 
   return (
     <>
       <nav className="sticky top-0 z-[100] flex items-center justify-between px-6 lg:px-12 py-4 bg-[#020617]/80 border-b border-white/5 backdrop-blur-xl">
-        
+
         {/* LOGO */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform duration-300">
-            <ShieldCheck size={22} />
+        <Link to="/" className="flex items-center gap-4 group relative">
+          {/* The Logo Image Container with a Glow Effect */}
+          <div className="relative">
+            {/* Background Blur Glow (Hidden on mobile, subtle on desktop) */}
+            <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full group-hover:bg-indigo-500/40 transition-all duration-500" />
+
+            <div className="relative p-1 bg-linear-to-tr rounded-4xl from-white/10 to-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+              <img
+                src="logo.png"
+                alt="SRK Bank"
+                className="h-9 w-auto object-contain  rounded-4xl brightness-110 group-hover:scale-110 transition-transform duration-500 ease-out"
+              />
+              {/* Animated Shine Effect on Hover */}
+              <div className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shine_1s_ease-in-out] transition-transform" />
+            </div>
           </div>
-          <div className="text-xl font-black tracking-tighter text-white uppercase">
-            Vajra<span className="text-indigo-500">Bank</span>
+
+          {/* Text Branding */}
+          <div className="flex flex-col justify-center -space-y-1">
+            <div className="text-2xl font-black tracking-tighter text-white uppercase flex items-center gap-1">
+              <span className="bg-clip-text text-transparent bg-linear-to-b from-white to-slate-400">SRK</span>
+              <span className="text-indigo-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">Bank</span>
+            </div>
+            <div className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500 group-hover:text-indigo-400 transition-colors">
+              Digital Excellence
+            </div>
           </div>
         </Link>
 
@@ -104,13 +122,12 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               {/* Notification Bell (Admins only) */}
               {activeAccount.role === 'admin' && <NotificationBell user={activeAccount} />}
-              
+
               <div className="relative" ref={profileRef}>
-                <button 
+                <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className={`w-10 h-10 overflow-hidden flex items-center justify-center rounded-xl bg-slate-900 border font-bold text-xs transition-all ${
-                    isProfileOpen ? "border-indigo-500 text-white" : "border-white/10 text-indigo-400 hover:border-indigo-500/50"
-                  }`}
+                  className={`w-10 h-10 overflow-hidden flex items-center justify-center rounded-xl bg-slate-900 border font-bold text-xs transition-all ${isProfileOpen ? "border-indigo-500 text-white" : "border-white/10 text-indigo-400 hover:border-indigo-500/50"
+                    }`}
                 >
                   {/* Display user image if available, else Initials */}
                   {activeAccount.imageUrl ? (
@@ -131,12 +148,12 @@ export default function Navbar() {
                         {activeAccount.role} Account
                       </p>
                     </div>
-                    
+
                     <Link to={getDashboardLink()} onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5">
                       <Grid size={16} className="text-indigo-500" /> Dashboard
-                    </Link>            
-                    <button 
-                      onClick={handleLogout} 
+                    </Link>
+                    <button
+                      onClick={handleLogout}
                       className="flex items-center gap-3 w-full px-4 py-3 text-sm text-rose-500 font-bold hover:bg-rose-500/10 border-t border-white/5 mt-1"
                     >
                       <BoxArrowRight size={18} /> Sign Out
@@ -146,8 +163,8 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <Link 
-              to="/login" 
+            <Link
+              to="/login"
               className="group flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white transition-all active:scale-95 shadow-lg shadow-indigo-600/20"
             >
               <PersonCircle size={18} />
@@ -175,7 +192,7 @@ export default function Navbar() {
               <NavLink to="/about" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><InfoCircle size={18} /> About Us</NavLink>
               <NavLink to="/contact" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><Envelope size={18} /> Contact</NavLink>
               <NavLink to="/partner-plans" onClick={() => setIsMenuOpen(false)} className={desktopNavLink}><Gem size={18} /> Partner Plans</NavLink>
-              
+
               {activeAccount && (
                 <Link to={getDashboardLink()} onClick={() => setIsMenuOpen(false)} className="mt-4 flex items-center justify-center gap-3 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/20">
                   <Grid size={18} /> Open Console

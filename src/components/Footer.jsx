@@ -54,18 +54,50 @@ export default function Footer() {
 
           {/* BRAND COLUMN */}
           <div className="space-y-6 text-center md:text-left">
-            <Link to="/" className="inline-flex flex-col items-center md:items-start group">
-              {/* LOGO IMAGE STYLE */}
-              <img
-                src="logo.png"
-                alt="VajraBank Logo"
-                className="h-10 w-auto mb-3 object-contain brightness-110 group-hover:scale-105 transition-transform duration-300"
-              />
-              <h2 className="text-2xl font-black text-white tracking-tight uppercase">
-                SRK<span className="text-indigo-500">Bank</span>
-              </h2>
-            </Link>
+            <Link to="/" className="inline-flex flex-col items-center md:items-start group transition-all duration-500">
+              {/* LOGO CONTAINER: The "Vault" Look */}
+              <div className="relative mb-4">
+                {/* Ambient Indigo Glow (Static) */}
+                <div className="absolute inset-0 bg-indigo-500/10 blur-2xl rounded-full" />
 
+                {/* Interactive Outer Ring (Glows on Hover) */}
+                <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500/40 to-blue-500/0 rounded-2xl opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-700" />
+
+                {/* The Glass Housing */}
+                <div className="relative p-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-indigo-500/20">
+                  <img
+                    src="logo.png"
+                    alt="SRK Bank"
+                    className="h-10 w-auto object-contain brightness-125 contrast-110"
+                  />
+
+                  {/* Subtle "Glass Shine" Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                </div>
+              </div>
+
+              {/* BRAND TEXT: Metallic & Structured */}
+              <div className="relative flex flex-col items-center md:items-start">
+                <h2 className="text-2xl font-black tracking-tighter text-white uppercase leading-tight">
+                  {/* Metallic Gradient for SRK */}
+                  <span className="bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-200 to-slate-500">
+                    SRK
+                  </span>
+                  {/* Neon/Digital Glow for Bank */}
+                  <span className="text-indigo-500 drop-shadow-[0_0_12px_rgba(99,102,241,0.4)]">
+                    Bank
+                  </span>
+                </h2>
+
+                {/* The "Micro-Tagline" (Adds instant professionalism) */}
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="h-[1px] w-4 bg-indigo-500/50" />
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] group-hover:text-slate-300 transition-colors">
+                    Secure. Sovereign. Smart.
+                  </span>
+                </div>
+              </div>
+            </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto md:mx-0">
               India's most trusted digital bank. Secure, seamless, and
               designed for the modern lifestyle.
