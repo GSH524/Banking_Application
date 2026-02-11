@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-    Send, Phone, Bank, QrCode, CheckCircleFill, ClockHistory,
-    ExclamationTriangle, ArrowRight, ShieldCheck
+    Send, Phone, Bank, CheckCircleFill, ClockHistory,
+    ExclamationTriangle, ShieldCheck
 } from 'react-bootstrap-icons';
 
 export default function Transfers() {
-    const [mode, setMode] = useState('upi'); // upi, bank
+    const [mode, setMode] = useState('upi');
     const [amount, setAmount] = useState('');
     const [recipient, setRecipient] = useState('');
     const [ifsc, setIfsc] = useState('');
-    const [status, setStatus] = useState('idle'); // idle, processing, success
+    const [status, setStatus] = useState('idle');
     const [recent, setRecent] = useState([
         { id: 1, name: 'Rahul Sharma', info: 'rahul@upi', amount: 1500, date: '2 hours ago', type: 'upi' },
         { id: 2, name: 'Aditya Birla', info: 'Acc: ...9921', amount: 12500, date: 'Yesterday', type: 'bank' },
@@ -19,10 +19,7 @@ export default function Transfers() {
     const handleTransfer = (e) => {
         e.preventDefault();
         if (!amount || !recipient) return;
-
         setStatus('processing');
-
-        // Simulate network delay
         setTimeout(() => {
             setStatus('success');
             const newTransfer = {
@@ -37,90 +34,72 @@ export default function Transfers() {
         }, 2000);
     };
 
-    const resetForm = () => {
-        setStatus('idle');
-        setAmount('');
-        setRecipient('');
-        setIfsc('');
-    };
-
     if (status === 'success') {
         return (
-            <main style={styles.container}>
-                <div className="glass-card" style={styles.successCard}>
-                    <div style={styles.successAnimation}>
-                        <CheckCircleFill size={80} color="#10b981" />
+            <main className="max-w-7xl mx-auto px-5 py-10 md:py-20 text-white min-h-screen flex items-center justify-center">
+                <div className="w-full max-w-xl bg-zinc-900/80 backdrop-blur-xl p-10 md:p-16 rounded-[2.5rem] border border-emerald-500/20 text-center shadow-[0_0_50px_-12px_rgba(16,185,129,0.2)]">
+                    <div className="mb-8 flex justify-center scale-125 md:scale-150">
+                        <CheckCircleFill size={80} className="text-emerald-400" />
                     </div>
-                    <h2 style={{ fontSize: '32px', fontWeight: '800', margin: '20px 0 10px 0' }}>Transfer Successful!</h2>
-                    <p style={{ color: '#94a3b8', fontSize: '18px', marginBottom: '30px' }}>
-                        ₹{Number(amount).toLocaleString()} sent to {recipient}
+                    <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">Transfer Sent!</h2>
+                    <p className="text-zinc-400 text-lg mb-8">
+                        ₹{Number(amount).toLocaleString()} successfully moved to <span className="text-emerald-400 font-bold">{recipient}</span>
                     </p>
-                    <div style={styles.receiptLine}>
-                        <span>Transaction ID</span>
-                        <span style={{ color: '#fff' }}>#VJRA{Math.floor(Math.random() * 900000 + 100000)}</span>
-                    </div>
-                    <button onClick={resetForm} style={styles.primaryBtn}>Make Another Transfer</button>
+                    <button 
+                        onClick={() => setStatus('idle')} 
+                        className="w-full py-5 bg-emerald-500 text-zinc-950 rounded-2xl font-black text-lg hover:bg-emerald-400 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20"
+                    >
+                        New Transfer
+                    </button>
                 </div>
             </main>
         );
     }
 
     return (
-        <main style={styles.container}>
-            <div style={styles.header}>
-                <h1 style={styles.title}>Instant Transfers</h1>
-                <p style={styles.subtitle}>Send money anywhere in India instantly, 24/7, with zero fees.</p>
+        <main className="max-w-7xl mx-auto px-5 py-10 md:py-20 text-white min-h-screen">
+            <div className="text-center mb-12 md:mb-16">
+                <h1 className="text-3xl md:text-5xl font-black mb-4 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                    Instant Transfers
+                </h1>
+                <p className="text-zinc-400 text-base md:text-lg max-w-2xl mx-auto">
+                    Secure, lightning-fast payments across the Vajra network.
+                </p>
             </div>
 
-            <div style={styles.grid}>
-                {/* TRANSFER FORM */}
-                <div className="glass-card" style={styles.formCard}>
-                    <div style={styles.modeTabs}>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                {/* FORM PANEL */}
+                <div className="lg:col-span-7 bg-zinc-900/50 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-white/5 shadow-2xl">
+                    <div className="flex bg-black/40 p-1.5 rounded-2xl mb-10">
                         <button
                             onClick={() => setMode('upi')}
-                            style={{ ...styles.tab, ...(mode === 'upi' ? styles.activeTab : {}) }}
+                            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-xs uppercase tracking-widest font-black transition-all ${mode === 'upi' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'text-zinc-500 hover:text-zinc-300 border border-transparent'}`}
                         >
-                            <Phone size={18} /> UPI Transfer
+                            <Phone size={16} /> UPI
                         </button>
                         <button
                             onClick={() => setMode('bank')}
-                            style={{ ...styles.tab, ...(mode === 'bank' ? styles.activeTab : {}) }}
+                            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-xs uppercase tracking-widest font-black transition-all ${mode === 'bank' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'text-zinc-500 hover:text-zinc-300 border border-transparent'}`}
                         >
-                            <Bank size={18} /> Bank Transfer
+                            <Bank size={16} /> Bank
                         </button>
                     </div>
 
-                    <form onSubmit={handleTransfer} style={styles.form}>
-                        <div style={styles.inputGroup}>
-                            <label style={styles.label}>{mode === 'upi' ? 'UPI ID / Mobile Number' : 'Account Number'}</label>
-                            <div style={styles.inputWrapper}>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder={mode === 'upi' ? 'e.g. name@upi' : 'e.g. 9876543210'}
-                                    value={recipient}
-                                    onChange={(e) => setRecipient(e.target.value)}
-                                    style={styles.input}
-                                />
-                            </div>
+                    <form onSubmit={handleTransfer} className="space-y-8">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Recipient Address</label>
+                            <input
+                                type="text"
+                                required
+                                placeholder={mode === 'upi' ? 'vpa@upi' : 'Account Number'}
+                                value={recipient}
+                                onChange={(e) => setRecipient(e.target.value)}
+                                className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-5 text-white focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                            />
                         </div>
 
-                        {mode === 'bank' && (
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>IFSC Code</label>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="e.g. VAJR0000123"
-                                    value={ifsc}
-                                    onChange={(e) => setIfsc(e.target.value)}
-                                    style={styles.input}
-                                />
-                            </div>
-                        )}
-
-                        <div style={styles.inputGroup}>
-                            <label style={styles.label}>Amount (₹)</label>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">Amount (INR)</label>
                             <input
                                 type="number"
                                 required
@@ -128,261 +107,49 @@ export default function Transfers() {
                                 placeholder="0.00"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
-                                style={{ ...styles.input, fontSize: '24px', fontWeight: '800', color: '#3b82f6' }}
+                                className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-5 text-3xl font-black text-emerald-400 focus:outline-none focus:border-emerald-500/50 transition-all"
                             />
-                        </div>
-
-                        <div style={styles.securityNote}>
-                            <ShieldCheck size={16} color="#10b981" />
-                            <span>Secure 256-bit encrypted transaction</span>
                         </div>
 
                         <button
                             type="submit"
                             disabled={status === 'processing'}
-                            style={styles.primaryBtn}
+                            className="w-full py-5 bg-gradient-to-r from-emerald-600 to-emerald-400 text-zinc-950 rounded-2xl font-black text-lg shadow-xl shadow-emerald-900/20 hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50"
                         >
-                            {status === 'processing' ? 'Processing...' : 'Send Money Now'}
+                            {status === 'processing' ? 'Encrypting...' : 'Authorize Transfer'}
                         </button>
                     </form>
                 </div>
 
-                {/* RECENT TRANSFERS */}
-                <div style={styles.recentSection}>
-                    <div style={styles.listHeader}>
-                        <ClockHistory />
-                        <h3 style={{ margin: 0, fontSize: '18px', color: "white" }}>Recent Recipients</h3>
-                    </div>
+                {/* RECENT PANEL */}
+                <div className="lg:col-span-5 space-y-8">
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-3">
+                        <ClockHistory /> Activity
+                    </h3>
 
-                    <div style={styles.recentList}>
+                    <div className="space-y-4">
                         {recent.map(item => (
-                            <div key={item.id} className="glass-card" style={styles.recentItem} onClick={() => setRecipient(item.info)}>
-                                <div style={styles.avatar}>
+                            <div 
+                                key={item.id} 
+                                className="group flex items-center gap-4 p-5 bg-zinc-900/30 rounded-3xl border border-white/5 cursor-pointer hover:border-emerald-500/30 transition-all"
+                                onClick={() => { setRecipient(item.info); setMode(item.type); }}
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl font-black text-emerald-400">
                                     {item.name.charAt(0)}
                                 </div>
-                                <div style={{ flex: 1 }}>
-                                    <p style={styles.recentName}>{item.name}</p>
-                                    <p style={styles.recentInfo}>{item.info}</p>
+                                <div className="flex-1">
+                                    <p className="font-bold text-zinc-100 group-hover:text-emerald-400 transition-colors">{item.name}</p>
+                                    <p className="text-[10px] text-zinc-500 font-mono uppercase">{item.info}</p>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <p style={styles.recentAmount}>₹{item.amount.toLocaleString()}</p>
-                                    <p style={styles.recentDate}>{item.date}</p>
+                                <div className="text-right">
+                                    <p className="font-black text-zinc-100">₹{item.amount.toLocaleString()}</p>
+                                    <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">{item.date}</p>
                                 </div>
                             </div>
                         ))}
-                    </div>
-
-                    <div className="glass-card" style={styles.transferLimit}>
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                            <ExclamationTriangle color="#f59e0b" />
-                            <div>
-                                <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color:"white" }}>Daily Transfer Limit</p>
-                                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
-                                    Your current daily limit is ₹2,00,000 for UPI transfers.
-                                </p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </main>
     );
 }
-
-const styles = {
-    container: {
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '60px 20px',
-        color: '#fff'
-    },
-    header: {
-        textAlign: 'center',
-        marginBottom: '50px'
-    },
-    title: {
-        fontSize: '36px',
-        fontWeight: '800',
-        marginBottom: '10px',
-        background: 'linear-gradient(135deg, #fff 0%, #94a3b8 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent'
-    },
-    subtitle: {
-        color: '#94a3b8',
-        fontSize: '18px'
-    },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: 'minmax(400px, 1.2fr) 1fr',
-        gap: '40px'
-    },
-    formCard: {
-        background: 'rgba(12, 20, 44, 0.6)',
-        backdropFilter: 'blur(10px)',
-        padding: '32px',
-        borderRadius: '24px',
-        border: '1px solid rgba(255,255,255,0.08)'
-    },
-    modeTabs: {
-        display: 'flex',
-        background: 'rgba(0,0,0,0.2)',
-        padding: '6px',
-        borderRadius: '12px',
-        marginBottom: '32px'
-    },
-    tab: {
-        flex: 1,
-        padding: '12px',
-        border: 'none',
-        background: 'none',
-        color: '#94a3b8',
-        fontSize: '14px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        borderRadius: '8px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        transition: 'all 0.2s'
-    },
-    activeTab: {
-        background: 'rgba(59, 130, 246, 0.1)',
-        color: '#3b82f6',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px'
-    },
-    inputGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-    },
-    label: {
-        fontSize: '14px',
-        color: '#94a3b8',
-        fontWeight: '600'
-    },
-    input: {
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        padding: '16px',
-        borderRadius: '12px',
-        color: '#fff',
-        fontSize: '16px',
-        outline: 'none',
-        width: '100%',
-        boxSizing: 'border-box'
-    },
-    securityNote: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontSize: '12px',
-        color: '#64748b',
-        justifyContent: 'center'
-    },
-    primaryBtn: {
-        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-        border: 'none',
-        color: '#fff',
-        padding: '18px',
-        borderRadius: '12px',
-        fontSize: '16px',
-        fontWeight: '700',
-        cursor: 'pointer',
-        boxShadow: '0 10px 20px -5px rgba(37, 99, 235, 0.4)',
-        transition: 'transform 0.2s, box-shadow 0.2s'
-    },
-    recentSection: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px'
-    },
-    listHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        color: '#f8fafc'
-    },
-    recentList: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px'
-    },
-    recentItem: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        padding: '16px',
-        background: 'rgba(12, 20, 44, 0.4)',
-        borderRadius: '16px',
-        cursor: 'pointer',
-        transition: 'all 0.2s'
-    },
-    avatar: {
-        width: '44px',
-        height: '44px',
-        borderRadius: '12px',
-        background: 'linear-gradient(135deg, #3b82f633, #7c3aed33)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '18px',
-        fontWeight: '700',
-        color: '#3b82f6',
-        border: '1px solid rgba(59, 130, 246, 0.2)'
-    },
-    recentName: {
-        margin: 0,
-        fontSize: '15px',
-        fontWeight: '700'
-    },
-    recentInfo: {
-        margin: '2px 0 0 0',
-        fontSize: '12px',
-        color: '#64748b'
-    },
-    recentAmount: {
-        margin: 0,
-        fontSize: '14px',
-        fontWeight: '700',
-        color: '#10b981'
-    },
-    recentDate: {
-        margin: '2px 0 0 0',
-        fontSize: '11px',
-        color: '#64748b'
-    },
-    transferLimit: {
-        padding: '20px',
-        background: 'rgba(245, 158, 11, 0.05)',
-        border: '1px solid rgba(245, 158, 11, 0.1)',
-        borderRadius: '16px'
-    },
-    successCard: {
-        maxWidth: '500px',
-        margin: '60px auto',
-        padding: '60px 40px',
-        textAlign: 'center',
-        background: 'rgba(12, 20, 44, 0.6)'
-    },
-    successAnimation: {
-        marginBottom: '30px',
-        animation: 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
-    },
-    receiptLine: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '16px 0',
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        marginBottom: '32px',
-        fontSize: '14px',
-        color: '#64748b'
-    }
-};

@@ -66,7 +66,7 @@ export default function Footer() {
                 {/* The Glass Housing */}
                 <div className="relative p-2 bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-indigo-500/20">
                   <img
-                    src="logo.png"
+                    src="/logo.png"
                     alt="SRK Bank"
                     className="h-10 w-auto object-contain brightness-125 contrast-110"
                   />
@@ -81,7 +81,7 @@ export default function Footer() {
                 <h2 className="text-2xl font-black tracking-tighter text-white uppercase leading-tight">
                   {/* Metallic Gradient for SRK */}
                   <span className="bg-clip-text text-transparent bg-gradient-to-b from-white via-slate-200 to-slate-500">
-                    SRK
+                    VAJRA
                   </span>
                   {/* Neon/Digital Glow for Bank */}
                   <span className="text-indigo-500 drop-shadow-[0_0_12px_rgba(99,102,241,0.4)]">
@@ -146,12 +146,12 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-center justify-center md:justify-start gap-3">
                 <Headset className="text-indigo-500" />
-                <span className="text-white font-bold text-sm">1800-SRK-SERVICES</span>
+                <span className="text-white font-bold text-sm">1800-Vajra-Bank</span>
               </div>
               <div className="text-sm space-y-2">
-                <p className="text-slate-400">support@srkbank.com</p>
+                <p className="text-slate-400">support@Vajrabank.com</p>
                 <p className="text-slate-500 text-xs leading-relaxed">
-                  SRK Tower, BKC, <br />
+                  Vajra Tower, Kukatpally, <br />
                   Hyderabad, India 50001
                 </p>
               </div>

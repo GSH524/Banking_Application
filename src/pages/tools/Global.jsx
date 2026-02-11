@@ -29,47 +29,55 @@ export default function Global() {
     }, [inrAmount, currency]);
 
     return (
-        <main style={styles.container}>
-            <div style={styles.header}>
-                <h1 style={styles.title}>Global Banking & Forex</h1>
-                <p style={styles.subtitle}>Borderless banking for the modern global citizen.</p>
+        <main className="max-w-7xl mx-auto px-4 py-10 md:py-16 text-white bg-[#020617]">
+            {/* HEADER */}
+            <div className="text-center mb-12">
+                <h1 className="text-3xl md:text-5xl font-extrabold mb-3 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                    Global Banking & Forex
+                </h1>
+                <p className="text-slate-400 text-sm md:text-lg">Borderless banking for the modern global citizen.</p>
             </div>
 
-            <div style={styles.grid}>
-                {/* RATE CALCULATOR */}
-                <div className="glass-card" style={styles.calcCard}>
-                    <div style={styles.calcHeader}>
-                        <ArrowLeftRight size={24} color="#3b82f6" />
-                        <h3 style={{ margin: 0, color:"white" }}>Exchange Rate Calculator</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+                {/* RATE CALCULATOR (7 columns) */}
+                <div className="lg:col-span-7 bg-slate-900/40 backdrop-blur-md p-6 md:p-10 rounded-3xl border border-white/10 shadow-2xl">
+                    <div className="flex items-center gap-3 mb-8">
+                        <ArrowLeftRight className="text-blue-500" size={24} />
+                        <h3 className="text-xl font-bold">Exchange Rate Calculator</h3>
                     </div>
 
-                    <div style={styles.calcBody}>
-                        <div style={styles.inputBox}>
-                            <label style={styles.label}>You send from India (INR)</label>
-                            <div style={styles.inputContainer}>
-                                <span style={styles.prefix}>₹</span>
+                    <div className="space-y-6">
+                        {/* INPUT INR */}
+                        <div className="bg-black/30 p-5 rounded-2xl border border-white/5">
+                            <label className="text-xs font-semibold text-slate-500 block mb-3">You send from India (INR)</label>
+                            <div className="flex items-center gap-4">
+                                <span className="text-2xl font-bold text-slate-400">₹</span>
                                 <input
                                     type="number"
                                     value={inrAmount}
                                     onChange={(e) => setInrAmount(e.target.value)}
-                                    style={styles.input}
+                                    className="bg-transparent border-none text-2xl md:text-3xl font-bold text-white outline-none w-full"
                                 />
                             </div>
                         </div>
 
-                        <div style={styles.divider}>
-                            <div style={styles.line} />
-                            <div style={styles.rateBadge}>1 INR = {rates[currency]} {currency}</div>
-                            <div style={styles.line} />
+                        {/* DIVIDER BADGE */}
+                        <div className="flex items-center gap-4">
+                            <div className="flex-1 h-px bg-white/5"></div>
+                            <div className="px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] md:text-xs font-black rounded-full whitespace-nowrap uppercase tracking-widest">
+                                1 INR = {rates[currency]} {currency}
+                            </div>
+                            <div className="flex-1 h-px bg-white/5"></div>
                         </div>
 
-                        <div style={styles.inputBox}>
-                            <label style={styles.label}>Recipient gets in {currency}</label>
-                            <div style={styles.inputContainer}>
+                        {/* RECIPIENT GETS */}
+                        <div className="bg-black/30 p-5 rounded-2xl border border-white/5">
+                            <label className="text-xs font-semibold text-slate-500 block mb-3">Recipient gets in {currency}</label>
+                            <div className="flex items-center gap-4">
                                 <select
                                     value={currency}
                                     onChange={(e) => setCurrency(e.target.value)}
-                                    style={styles.select}
+                                    className="bg-slate-800 border border-white/10 text-white px-3 py-1 rounded-lg font-bold outline-none cursor-pointer"
                                 >
                                     {Object.keys(rates).map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
@@ -77,291 +85,78 @@ export default function Global() {
                                     type="text"
                                     readOnly
                                     value={converted}
-                                    style={{ ...styles.input, color: '#10b981' }}
+                                    className="bg-transparent border-none text-2xl md:text-3xl font-bold text-emerald-400 outline-none w-full"
                                 />
                             </div>
                         </div>
 
-                        <div style={styles.feeBreakdown}>
-                            <div style={styles.feeRow}>
+                        {/* FEE BREAKDOWN */}
+                        <div className="space-y-3 px-2 pt-4">
+                            <div className="flex justify-between text-xs md:text-sm text-slate-400">
                                 <span>Transfer Fee</span>
-                                <span style={{ color: '#10b981' }}>₹0 (Zero Fee promotion)</span>
+                                <span className="text-emerald-500 font-bold">₹0 (Zero Fee promotion)</span>
                             </div>
-                            <div style={styles.feeRow}>
+                            <div className="flex justify-between text-xs md:text-sm text-slate-400">
                                 <span>Exchange Rate</span>
                                 <span>Standard Mid-Market</span>
                             </div>
                         </div>
-
-                        {/* <button style={styles.primaryBtn}>Initialize Global Transfer</button> */}
                     </div>
                 </div>
 
-                {/* DETAILS SECTION */}
-                <div style={styles.detailsColumn}>
-                    <div className="glass-card" style={styles.countryList}>
-                        <h4 style={styles.sectionTitle}> <span style={{ color: "white" }}>Supported Corridors</span></h4>
-                        {countries.map(c => (
-                            <div key={c.name} style={styles.countryItem}>
-                                <div style={styles.countryInfo}>
-                                    <span style={styles.flag}>{c.flag}</span>
-                                    <div>
-                                        <p style={styles.countryName}>{c.name}</p>
-                                        <p style={styles.countrySub}>{c.currency} Corridor</p>
+                {/* DETAILS SECTION (5 columns) */}
+                <div className="lg:col-span-5 flex flex-col gap-6">
+                    {/* Supported Corridors */}
+                    <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/10">
+                        <h4 className="text-lg font-bold mb-6">Supported Corridors</h4>
+                        <div className="space-y-1">
+                            {countries.map(c => (
+                                <div key={c.name} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-2xl">{c.flag}</span>
+                                        <div>
+                                            <p className="font-bold text-sm text-white">{c.name}</p>
+                                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">{c.currency} Corridor</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-slate-400 flex items-center justify-end gap-1">
+                                            <Clock size={10} /> {c.time}
+                                        </p>
+                                        <p className="text-[10px] font-bold text-emerald-500 mt-1">{c.fee} fee</p>
                                     </div>
                                 </div>
-                                <div style={styles.countryMeta}>
-                                    <span style={styles.timeTag}><Clock size={12} /> {c.time}</span>
-                                    <span style={styles.feeTag}>{c.fee} fee</span>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="glass-card" style={styles.securityFeature}>
-                        <ShieldCheck size={28} color="#10b981" />
+                    {/* FEMA Compliant Badge */}
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl flex items-center gap-4">
+                        <ShieldCheck className="text-emerald-500 shrink-0" size={28} />
                         <div>
-                            <h5 style={{ margin: '0 0 5px 0' }}>FEMA Compliant</h5>
-                            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
-                                All international transfers through VajraBank strictly adhere to RBI and FEMA regulations.
+                            <h5 className="text-sm font-bold text-emerald-400">FEMA Compliant</h5>
+                            <p className="text-xs text-slate-500 leading-relaxed mt-1">
+                                VajraBank international transfers strictly adhere to RBI and FEMA regulations.
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* ADDITIONAL HIGHLIGHTS */}
-            <div style={styles.highlightSection}>
-                <div className="glass-card" style={styles.highlightCard}>
-                    <Globe size={40} color="#3b82f6" />
-                    <h3 style={{color:"white"}}>Multi-Currency Accounts</h3>
-                    <p>Hold, manage, and spend in 10+ major global currencies without additional conversion fees.</p>
-                </div>
-                <div className="glass-card" style={styles.highlightCard}>
-                    <Airplane size={40} color="#8b5cf6" />
-                    <h3 style={{color:"white"}}>Waitless Forex</h3>
-                    <p>Order physical currency or reload your Forex card instantly through the mobile app.</p>
-                </div>
-                <div className="glass-card" style={styles.highlightCard}>
-                    <InfoCircle size={40} color="#10b981" />
-                    <h3 style={{color:"white"}}>Global Assistance</h3>
-                    <p>24/7 dedicated international concierge service for all your travel and banking needs.</p>
-                </div>
+            {/* ADDITIONAL HIGHLIGHTS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                    { icon: <Globe size={32} className="text-blue-500" />, title: "Multi-Currency Accounts", text: "Hold, manage, and spend in 10+ major global currencies without conversion fees." },
+                    { icon: <Airplane size={32} className="text-purple-500" />, title: "Waitless Forex", text: "Order physical currency or reload your Forex card instantly through the mobile app." },
+                    { icon: <InfoCircle size={32} className="text-emerald-500" />, title: "Global Assistance", text: "24/7 dedicated international concierge for all your travel and banking needs." }
+                ].map((item, idx) => (
+                    <div key={idx} className="bg-slate-900/30 p-8 rounded-3xl border border-white/5 text-center flex flex-col items-center gap-4 hover:border-white/20 transition-all">
+                        <div className="mb-2">{item.icon}</div>
+                        <h3 className="text-lg font-bold">{item.title}</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed">{item.text}</p>
+                    </div>
+                ))}
             </div>
         </main>
     );
 }
-
-const styles = {
-    container: {
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '60px 20px',
-        color: '#fff'
-    },
-    header: {
-        textAlign: 'center',
-        marginBottom: '50px'
-    },
-    title: {
-        fontSize: '36px',
-        fontWeight: '800',
-        marginBottom: '10px',
-        background: 'linear-gradient(135deg, #fff 0%, #94a3b8 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent'
-    },
-    subtitle: {
-        color: '#94a3b8',
-        fontSize: '18px'
-    },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: 'minmax(450px, 1.2fr) 1fr',
-        gap: '40px',
-        marginBottom: '60px'
-    },
-    calcCard: {
-        background: 'rgba(12, 20, 44, 0.6)',
-        backdropFilter: 'blur(10px)',
-        padding: '32px',
-        borderRadius: '24px',
-        border: '1px solid rgba(255,255,255,0.08)'
-    },
-    calcHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        marginBottom: '32px'
-    },
-    inputBox: {
-        background: 'rgba(0,0,0,0.2)',
-        padding: '20px',
-        borderRadius: '16px',
-        border: '1px solid rgba(255,255,255,0.05)'
-    },
-    label: {
-        fontSize: '13px',
-        color: '#94a3b8',
-        marginBottom: '12px',
-        display: 'block'
-    },
-    inputContainer: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '15px'
-    },
-    prefix: {
-        fontSize: '24px',
-        fontWeight: '700',
-        color: '#94a3b8'
-    },
-    input: {
-        background: 'none',
-        border: 'none',
-        color: '#fff',
-        fontSize: '28px',
-        fontWeight: '700',
-        outline: 'none',
-        width: '100%'
-    },
-    divider: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '15px',
-        margin: '20px 0'
-    },
-    line: {
-        flex: 1,
-        height: '1px',
-        background: 'rgba(255,255,255,0.05)'
-    },
-    rateBadge: {
-        fontSize: '11px',
-        fontWeight: '800',
-        padding: '6px 12px',
-        background: 'rgba(59, 130, 246, 0.1)',
-        color: '#3b82f6',
-        borderRadius: '20px',
-        whiteSpace: 'nowrap',
-        border: '1px solid rgba(59, 130, 246, 0.2)'
-    },
-    select: {
-        background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        color: '#fff',
-        padding: '8px 12px',
-        borderRadius: '8px',
-        fontSize: '16px',
-        fontWeight: '700',
-        outline: 'none'
-    },
-    feeBreakdown: {
-        marginTop: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        padding: '0 10px'
-    },
-    feeRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '14px',
-        color: '#94a3b8'
-    },
-    primaryBtn: {
-        width: '100%',
-        marginTop: '32px',
-        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-        border: 'none',
-        color: '#fff',
-        padding: '18px',
-        borderRadius: '12px',
-        fontSize: '16px',
-        fontWeight: '700',
-        cursor: 'pointer'
-    },
-    detailsColumn: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px'
-    },
-    countryList: {
-        padding: '24px',
-        background: 'rgba(12, 20, 44, 0.6)',
-        borderRadius: '24px'
-    },
-    sectionTitle: {
-        fontSize: '18px',
-        fontWeight: '700',
-        marginBottom: '20px'
-    },
-    countryItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 0',
-        borderBottom: '1px solid rgba(255,255,255,0.05)'
-    },
-    countryInfo: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px'
-    },
-    flag: {
-        fontSize: '24px'
-    },
-    countryName: {
-        margin: 0,
-        fontWeight: '700',
-        fontSize: '15px'
-    },
-    countrySub: {
-        margin: 0,
-        fontSize: '12px',
-        color: '#64748b'
-    },
-    countryMeta: {
-        textAlign: 'right',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px'
-    },
-    timeTag: {
-        fontSize: '11px',
-        color: '#94a3b8',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        justifyContent: 'flex-end'
-    },
-    feeTag: {
-        fontSize: '11px',
-        fontWeight: '700',
-        color: '#10b981'
-    },
-    securityFeature: {
-        padding: '20px',
-        display: 'flex',
-        gap: '16px',
-        alignItems: 'center',
-        background: 'rgba(16, 185, 129, 0.05)',
-        border: '1px solid rgba(16, 185, 129, 0.1)',
-        borderRadius: '20px'
-    },
-    highlightSection: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '30px'
-    },
-    highlightCard: {
-        padding: '32px',
-        textAlign: 'center',
-        background: 'rgba(12, 20, 44, 0.4)',
-        borderRadius: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '15px'
-    }
-};

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import CardVisual from '../../components/user/CardVisual';
 import {
@@ -13,7 +13,6 @@ export default function CardsTool() {
     const [selectedCard, setSelectedCard] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Mock cards matched to user or demo
     const cards = [
         {
             id: "primary",
@@ -55,18 +54,24 @@ export default function CardsTool() {
     };
 
     return (
-        <main style={styles.container}>
-            <div style={styles.header}>
-                <h1 style={styles.title}>Card Management Suite</h1>
-                <p style={styles.subtitle}>Full control over your physical and virtual cards with military-grade security.</p>
+        <main className="max-w-7xl mx-auto px-4 py-8 md:py-16 text-white min-h-screen">
+            {/* HEADER */}
+            <div className="text-center mb-10 md:mb-14">
+                <h1 className="text-3xl md:text-5xl font-extrabold mb-3 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                    Card Management Suite
+                </h1>
+                <p className="text-slate-400 text-sm md:text-lg max-w-2xl mx-auto">
+                    Full control over your physical and virtual cards with military-grade security.
+                </p>
             </div>
 
-            <div style={styles.grid}>
-                {/* CARD LIST */}
-                <div style={styles.cardList}>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {/* CARD LIST (8 Columns) */}
+                <div className="lg:col-span-8 flex flex-col gap-6">
                     {cards.map((card) => (
-                        <div key={card.id} className="glass-card" style={styles.cardWrapper}>
-                            <div style={styles.visualSection}>
+                        <div key={card.id} className="bg-slate-900/40 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col md:flex-row items-center gap-8 transition-all hover:border-white/20">
+                            {/* Visual Component */}
+                            <div className="shrink-0 shadow-2xl shadow-black/50">
                                 <CardVisual
                                     type={card.name}
                                     number={card.number}
@@ -76,416 +81,166 @@ export default function CardsTool() {
                                 />
                             </div>
 
-                            <div style={styles.infoSection}>
-                                <div style={styles.cardHeader}>
+                            {/* Info Section */}
+                            <div className="flex-1 w-full">
+                                <div className="flex justify-between items-start mb-6">
                                     <div>
-                                        <h3 style={styles.cardTitle}>{card.name}</h3>
-                                        <p style={styles.cardTypeLabel}>{card.type} Card</p>
+                                        <h3 className="text-xl md:text-2xl font-bold text-slate-50">{card.name}</h3>
+                                        <p className="text-[10px] md:text-xs uppercase tracking-[2px] text-slate-500 font-black mt-1">
+                                            {card.type} Card
+                                        </p>
                                     </div>
-                                    <span style={{
-                                        ...styles.statusBadge,
-                                        background: card.isBlocked ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                                        color: card.isBlocked ? '#ff5f5f' : '#10b981',
-                                        border: `1px solid ${card.isBlocked ? '#ef444455' : '#10b98155'}`
-                                    }}>
+                                    <span className={`text-[10px] font-black px-3 py-1 rounded-full border tracking-widest ${
+                                        card.isBlocked 
+                                        ? 'bg-red-500/10 text-red-400 border-red-500/20' 
+                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                    }`}>
                                         {card.isBlocked ? 'FROZEN' : 'ACTIVE'}
                                     </span>
                                 </div>
 
-                                <div style={styles.benefitsList}>
+                                {/* Benefits Tags */}
+                                <div className="flex flex-wrap gap-2 mb-8">
                                     {card.benefits.map((b, i) => (
-                                        <div key={i} style={styles.benefitItem}>
-                                            <StarFill size={10} color="#f59e0b" />
+                                        <div key={i} className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg text-xs text-slate-300">
+                                            <StarFill size={10} className="text-amber-500" />
                                             <span>{b}</span>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div style={styles.actions}>
+                                {/* Actions */}
+                                <div className="grid grid-cols-2 gap-4">
                                     <button
                                         onClick={() => handleFreezeToggle(card)}
                                         disabled={loading}
-                                        style={{
-                                            ...styles.actionBtn,
-                                            color: card.isBlocked ? '#10b981' : '#ef4444',
-                                            borderColor: card.isBlocked ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'
-                                        }}
+                                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border font-bold text-sm transition-all active:scale-95 ${
+                                            card.isBlocked 
+                                            ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10' 
+                                            : 'text-red-400 border-red-500/30 bg-red-500/5 hover:bg-red-500/10'
+                                        }`}
                                     >
                                         {card.isBlocked ? <ShieldCheck /> : <ShieldLock />}
-                                        {card.isBlocked ? 'Unfreeze' : 'Freeze Card'}
+                                        {card.isBlocked ? 'Unfreeze' : 'Freeze'}
                                     </button>
-                                    <button style={styles.actionBtn} onClick={() => setSelectedCard(card)}>
-                                        <InfoCircle />
-                                        View Details
+                                    <button 
+                                        onClick={() => setSelectedCard(card)}
+                                        className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-white/10 bg-white/5 font-bold text-sm hover:bg-white/10 transition-all active:scale-95"
+                                    >
+                                        <InfoCircle /> Details
                                     </button>
                                 </div>
                             </div>
                         </div>
                     ))}
 
+                    {/* Apply New Card (Empty State) */}
                     <div
-                        className="glass-card"
-                        style={styles.applyCard}
+                        className="bg-blue-500/5 border-2 border-dashed border-blue-500/20 p-10 rounded-[2rem] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-500/10 transition-all"
                         onClick={() => navigate(currentUser ? '/user/cards' : '/login')}
                     >
-                        <PlusCircle size={32} color="#3b82f6" />
-                        <h3 style={{ margin: '12px 0 4px 0', fontSize: '18px', color: "white" }}>Apply for a New Card</h3>
-                        <p style={{ color: '#94a3b8', fontSize: '13px' }}>Boost your spending power with Vajra Infinite</p>
+                        <PlusCircle size={40} className="text-blue-500 mb-4" />
+                        <h3 className="text-lg font-bold">Apply for a New Card</h3>
+                        <p className="text-slate-500 text-sm mt-1">Boost your spending power with Vajra Infinite</p>
                     </div>
                 </div>
 
-                {/* SIDEBAR */}
-                <div style={styles.sidebar}>
-                    <div className="glass-card" style={styles.securityBox}>
-                        <div style={styles.securityHeader}>
-                            <ShieldShaded size={24} color="#10b981" />
-                            <h4 style={{ margin: 0 }}>Vajra Guardian™</h4>
+                {/* SIDEBAR (4 Columns) */}
+                <div className="lg:col-span-4 flex flex-col gap-6">
+                    {/* Security Module */}
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-8 rounded-3xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <ShieldShaded size={28} className="text-emerald-500" />
+                            <h4 className="font-bold text-lg">Vajra Guardian™</h4>
                         </div>
-                        <p style={styles.securityText}>
+                        <p className="text-slate-400 text-sm leading-relaxed mb-6">
                             Your assets are protected by real-time AI monitoring. Any unusual activity triggers an instant freeze.
                         </p>
-                        <ul style={styles.securityList}>
-                            <li><LockFill size={12} /> 256-bit encryption</li>
-                            <li><LockFill size={12} /> Zero Liability Policy</li>
-                            <li><LockFill size={12} /> 24/7 Fraud Support</li>
+                        <ul className="space-y-3">
+                            {['256-bit encryption', 'Zero Liability Policy', '24/7 Fraud Support'].map((item, idx) => (
+                                <li key={idx} className="flex items-center gap-3 text-xs text-slate-300">
+                                    <LockFill className="text-emerald-500/60" /> {item}
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
-                    <div className="glass-card" style={styles.promoCard}>
-                        <GraphUp size={24} color="#3b82f6" style={{ marginBottom: '15px' }} />
-                        <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', color: "white" }}>Manage Limits</h4>
-                        <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.5' }}>
+                    {/* Quick Settings Module */}
+                    <div className="bg-slate-900/60 p-8 rounded-3xl border border-white/5">
+                        <GraphUp size={28} className="text-blue-500 mb-4" />
+                        <h4 className="font-bold text-lg mb-2">Manage Limits</h4>
+                        <p className="text-slate-400 text-sm leading-relaxed mb-6">
                             Adjust your daily ATM and POS limits instantly to control your spending habits.
                         </p>
-                        <button style={styles.secondaryBtn} onClick={() => setSelectedCard(cards[0])}>Set Limits</button>
+                        <button 
+                            onClick={() => setSelectedCard(cards[0])}
+                            className="w-full py-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 font-bold text-sm hover:bg-blue-500/20 transition-all"
+                        >
+                            Set Limits
+                        </button>
                     </div>
                 </div>
             </div>
 
             {/* DETAILS MODAL */}
             {selectedCard && (
-                <div style={styles.modalOverlay} onClick={() => setSelectedCard(null)}>
-                    <div className="glass-card" style={styles.modal} onClick={e => e.stopPropagation()}>
-                        <button style={styles.closeBtn} onClick={() => setSelectedCard(null)}><X size={24} /></button>
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedCard(null)} />
+                    
+                    {/* Modal Box */}
+                    <div className="relative w-full max-w-lg bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <button 
+                            className="absolute top-6 right-6 text-slate-500 hover:text-white"
+                            onClick={() => setSelectedCard(null)}
+                        >
+                            <X size={28} />
+                        </button>
 
-                        <div style={styles.modalHeader}>
-                            <h2 style={{ margin: 0 }}>{selectedCard.name}</h2>
-                            <p style={{ color: '#94a3b8', margin: '5px 0' }}>Detailed overview & settings</p>
+                        <div className="mb-10">
+                            <h2 className="text-2xl font-bold">{selectedCard.name}</h2>
+                            <p className="text-slate-400 text-sm mt-1">Detailed overview & security settings</p>
                         </div>
 
-                        <div style={styles.modalContent}>
-                            <div style={styles.detailSection}>
-                                <h4 style={styles.sectionTitle}>Spending Limits</h4>
-                                <div style={styles.limitRow}>
-                                    <span>Daily Limit</span>
-                                    <span style={styles.limitVal}>{selectedCard.limits.daily}</span>
-                                </div>
-                                <div style={styles.limitRow}>
-                                    <span>Monthly Limit</span>
-                                    <span style={styles.limitVal}>{selectedCard.limits.monthly}</span>
+                        <div className="space-y-8 mb-10">
+                            {/* Spending Limits */}
+                            <div>
+                                <h4 className="text-blue-500 text-xs font-black uppercase tracking-widest mb-4">Spending Limits</h4>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between border-b border-white/5 pb-3">
+                                        <span className="text-slate-400">Daily Limit</span>
+                                        <span className="font-bold">{selectedCard.limits.daily}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-white/5 pb-3">
+                                        <span className="text-slate-400">Monthly Limit</span>
+                                        <span className="font-bold">{selectedCard.limits.monthly}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div style={styles.detailSection}>
-                                <h4 style={styles.sectionTitle}>Card Benefits</h4>
-                                <div style={styles.benefitGrid}>
-                                    {selectedCard.benefits.map((b, i) => (
-                                        <div key={i} style={styles.benefitTag}>{b}</div>
+                            {/* Security Controls */}
+                            <div>
+                                <h4 className="text-blue-500 text-xs font-black uppercase tracking-widest mb-4">Security Controls</h4>
+                                <div className="space-y-3">
+                                    {['Online Transactions', 'International Usage', 'Contactless (NFC)'].map((label) => (
+                                        <label key={label} className="flex justify-between items-center cursor-pointer group">
+                                            <span className="text-slate-300 group-hover:text-white transition-colors">{label}</span>
+                                            <input type="checkbox" defaultChecked className="w-10 h-5 bg-slate-700 rounded-full appearance-none checked:bg-blue-500 transition-all cursor-pointer relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:w-4 after:h-4 after:rounded-full after:transition-all checked:after:translate-x-5" />
+                                        </label>
                                     ))}
-                                    <div style={styles.benefitTag}>Purchase Protection</div>
-                                    <div style={styles.benefitTag}>Global Acceptance</div>
                                 </div>
-                            </div>
-
-                            <div style={styles.securitySettings}>
-                                <h4 style={styles.sectionTitle}>Security Controls</h4>
-                                <label style={styles.toggleRow}>
-                                    <span>Online Transactions</span>
-                                    <input type="checkbox" defaultChecked />
-                                </label>
-                                <label style={styles.toggleRow}>
-                                    <span>International Usage</span>
-                                    <input type="checkbox" defaultChecked />
-                                </label>
-                                <label style={styles.toggleRow}>
-                                    <span>Contactless (NFC)</span>
-                                    <input type="checkbox" defaultChecked />
-                                </label>
                             </div>
                         </div>
 
-                        <button style={styles.primaryBtn} onClick={() => setSelectedCard(null)}>Save Settings</button>
+                        <button 
+                            onClick={() => setSelectedCard(null)}
+                            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/20"
+                        >
+                            Save Settings
+                        </button>
                     </div>
                 </div>
             )}
         </main>
     );
 }
-
-const styles = {
-    container: {
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '60px 20px',
-        color: '#fff'
-    },
-    header: {
-        textAlign: 'center',
-        marginBottom: '50px'
-    },
-    title: {
-        fontSize: '36px',
-        fontWeight: '800',
-        marginBottom: '10px',
-        background: 'linear-gradient(135deg, #fff 0%, #94a3b8 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent'
-    },
-    subtitle: {
-        color: '#94a3b8',
-        fontSize: '18px',
-        maxWidth: '600px',
-        margin: '0 auto'
-    },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 350px',
-        gap: '40px'
-    },
-    cardList: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '30px'
-    },
-    cardWrapper: {
-        background: 'rgba(15, 23, 42, 0.4)',
-        backdropFilter: 'blur(20px)',
-        padding: '30px',
-        borderRadius: '28px',
-        border: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex',
-        gap: '40px',
-        alignItems: 'center',
-        transition: 'transform 0.3s ease'
-    },
-    visualSection: {
-        flexShrink: 0,
-        boxShadow: '0 20px 40px -10px rgba(0,0,0,0.5)'
-    },
-    infoSection: {
-        flex: 1
-    },
-    cardHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '20px'
-    },
-    cardTitle: {
-        fontSize: '24px',
-        fontWeight: '800',
-        margin: 0,
-        color: '#f8fafc'
-    },
-    cardTypeLabel: {
-        margin: '4px 0 0 0',
-        fontSize: '12px',
-        color: '#64748b',
-        textTransform: 'uppercase',
-        letterSpacing: '1px'
-    },
-    statusBadge: {
-        fontSize: '11px',
-        fontWeight: '900',
-        padding: '6px 12px',
-        borderRadius: '8px',
-        letterSpacing: '1.5px'
-    },
-    benefitsList: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '12px',
-        marginBottom: '28px'
-    },
-    benefitItem: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontSize: '13px',
-        color: '#cbd5e1',
-        background: 'rgba(255,255,255,0.03)',
-        padding: '4px 10px',
-        borderRadius: '6px'
-    },
-    actions: {
-        display: 'flex',
-        gap: '16px'
-    },
-    actionBtn: {
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        padding: '12px 20px',
-        borderRadius: '12px',
-        color: '#fff',
-        fontSize: '14px',
-        fontWeight: '700',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        transition: 'all 0.2s',
-        outline: 'none'
-    },
-    applyCard: {
-        background: 'rgba(59, 130, 246, 0.02)',
-        border: '2px dashed rgba(59, 130, 246, 0.2)',
-        borderRadius: '28px',
-        padding: '50px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        transition: 'all 0.3s'
-    },
-    sidebar: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px'
-    },
-    securityBox: {
-        padding: '30px',
-        background: 'rgba(16, 185, 129, 0.03)',
-        border: '1px solid rgba(16, 185, 129, 0.1)',
-        borderRadius: '24px'
-    },
-    securityHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        marginBottom: '15px'
-    },
-    securityText: {
-        fontSize: '14px',
-        color: '#94a3b8',
-        lineHeight: '1.6',
-        margin: '0 0 20px 0'
-    },
-    securityList: {
-        listStyle: 'none',
-        padding: 0,
-        margin: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        fontSize: '13px',
-        color: '#cbd5e1'
-    },
-    promoCard: {
-        padding: '24px',
-        background: 'rgba(12, 20, 44, 0.6)',
-        borderRadius: '24px',
-        border: '1px solid rgba(255,255,255,0.05)'
-    },
-    secondaryBtn: {
-        width: '100%',
-        marginTop: '20px',
-        background: 'rgba(59, 130, 246, 0.1)',
-        border: '1px solid rgba(59, 130, 246, 0.2)',
-        color: '#3b82f6',
-        padding: '12px',
-        borderRadius: '10px',
-        fontSize: '14px',
-        fontWeight: '700',
-        cursor: 'pointer'
-    },
-    modalOverlay: {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000
-    },
-    modal: {
-        width: '100%',
-        maxWidth: '500px',
-        padding: '40px',
-        background: '#0f172a',
-        borderRadius: '32px',
-        position: 'relative',
-        border: '1px solid rgba(255,255,255,0.1)',
-        animation: 'modalSlide 0.3s ease-out'
-    },
-    closeBtn: {
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        background: 'none',
-        border: 'none',
-        color: '#64748b',
-        cursor: 'pointer'
-    },
-    modalHeader: {
-        marginBottom: '32px'
-    },
-    modalContent: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '30px',
-        marginBottom: '40px'
-    },
-    sectionTitle: {
-        fontSize: '14px',
-        color: '#3b82f6',
-        textTransform: 'uppercase',
-        letterSpacing: '1px',
-        margin: '0 0 15px 0'
-    },
-    limitRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '12px 0',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        fontSize: '15px'
-    },
-    limitVal: {
-        fontWeight: '700',
-        color: '#fff'
-    },
-    benefitGrid: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '10px'
-    },
-    benefitTag: {
-        background: 'rgba(255,255,255,0.05)',
-        padding: '6px 14px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        color: '#cbd5e1'
-    },
-    toggleRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        margin: '10px 0',
-        fontSize: '15px'
-    },
-    primaryBtn: {
-        width: '100%',
-        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-        border: 'none',
-        color: '#fff',
-        padding: '18px',
-        borderRadius: '16px',
-        fontSize: '16px',
-        fontWeight: '700',
-        cursor: 'pointer'
-    }
-};

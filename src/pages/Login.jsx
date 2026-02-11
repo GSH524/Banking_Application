@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { userAuth, userDB } from "../firebaseUser";
+import { findUserByEmail } from "../utils/bankUtils"; // IMPORT HELPER
 
 // Icons
 import { FaEye, FaEyeSlash, FaUserCircle, FaEnvelope, FaLock, FaPhoneAlt, FaChevronRight } from "react-icons/fa";
@@ -58,7 +59,7 @@ export default function Login() {
     setSubmitting(true);
 
     if (mode === "login") {
-      // 1. FIRST CHECK: ADMIN CREDENTIALS
+      // 1. ADMIN CHECK
       const isAdmin = loginAdmin(email, password);
       if (isAdmin) {
         toast.success("Admin Access Granted");
@@ -66,7 +67,30 @@ export default function Login() {
         return;
       }
 
-      // 2. SECOND CHECK: FIREBASE / PARTNER / USER
+      // 2. CHECK DATABANK.JSON (LEGACY DATA)
+      try {
+        const legacyUser = await findUserByEmail(email);
+        
+        if (legacyUser) {
+          // Check Password: For legacy users, password is their Contact Number
+          if (String(password) === String(legacyUser.mobile)) {
+             await loginUser(legacyUser); // Log in to Context
+             toast.success(`Welcome back, ${legacyUser.firstName}`);
+             navigate("/user/dashboard");
+             setSubmitting(false);
+             return;
+          } else {
+             // If email matches but password wrong, fail immediately to prevent confusion
+             toast.error("Invalid credentials (Hint: Use Mobile No as password)");
+             setSubmitting(false);
+             return;
+          }
+        }
+      } catch (err) {
+        console.error("Legacy check skipped:", err);
+      }
+
+      // 3. CHECK FIREBASE (NORMAL USERS)
       try {
         const userCredential = await signInWithEmailAndPassword(userAuth, email, password);
         const user = userCredential.user;
@@ -97,27 +121,12 @@ export default function Login() {
 
         toast.error("Profile not found. Contact Support.");
       } catch (error) {
-        // 3. THIRD CHECK: LEGACY DATA FALLBACK
-        try {
-          const res = await fetch('/bankData.json');
-          const data = await res.json();
-          const legacyMatch = data.find(u => u.Email?.toLowerCase() === email.toLowerCase());
-
-          if (legacyMatch && password === legacyMatch["Contact Number"]?.toString()) {
-            const { normalizeLegacyUser } = await import("../utils/userUtils");
-            const legacyUser = normalizeLegacyUser([legacyMatch]);
-            await loginUser(legacyUser);
-            navigate("/user/dashboard");
-            return;
-          }
-        } catch (e) { console.error("Legacy fail", e); }
-
         toast.error("Invalid credentials or network error");
       } finally {
         setSubmitting(false);
       }
     } else {
-      // HANDLE SIGNUP LOGIC (As per your existing code)
+      // HANDLE SIGNUP LOGIC
       handleSignup();
     }
   };
@@ -169,12 +178,12 @@ export default function Login() {
             {mode === "signup" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
                 <div className="flex justify-center mb-4">
-                   <label className="relative group cursor-pointer">
+                    <label className="relative group cursor-pointer">
                       <div className="w-20 h-20 rounded-full bg-slate-800 border-2 border-dashed border-slate-700 flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-500">
                         {image ? <img src={image} className="w-full h-full object-cover" /> : <FaUserCircle className="text-slate-600 group-hover:text-indigo-400" size={30} />}
                       </div>
                       <input type="file" hidden onChange={handleImageChange} />
-                   </label>
+                    </label>
                 </div>
                 <div className="relative">
                   <FaUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
