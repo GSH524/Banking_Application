@@ -2,9 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useBankData } from '../../hooks/useBankData';
 import { useAdminActions } from '../../hooks/useAdminActions';
 import CustomerTable from '../../components/admin/CustomerTable';
-import CustomerFilters from '../../components/admin/CustomerFilters';
 import CustomerModal from '../../components/admin/CustomerModal';
-import { People, ShieldLock, Download, ChevronLeft, ChevronRight } from 'react-bootstrap-icons';
+import { People } from 'react-bootstrap-icons';
 
 export default function Customers() {
   const { data = [], loading, error } = useBankData(); // Default to empty array to prevent map errors
@@ -96,63 +95,10 @@ export default function Customers() {
 
       {/* MAIN CONTENT CARD */}
       <div className="bg-[#161b22] border border-white/10 rounded-[2rem] p-6 lg:p-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-        
-        <CustomerFilters filters={filters} setFilters={setFilters} />
-        
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />        
         <div className="mt-8 overflow-x-auto">
           {/* Ensure CustomerTable receives the sliced data */}
           <CustomerTable data={paginatedData} onView={setSelectedCustomer} />
-        </div>
-
-        {/* TAILWIND PAGINATION CONTROLS */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/5 pt-6">
-          <div className="text-xs text-slate-500 font-medium order-2 sm:order-1">
-            Page <span className="text-blue-400">{currentPage}</span> of {totalPages}
-          </div>
-          
-          <div className="flex items-center gap-2 order-1 sm:order-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:bg-blue-600 hover:text-white disabled:opacity-20 disabled:hover:bg-white/5 transition-all"
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            <div className="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/5">
-              {[...Array(totalPages)].map((_, i) => {
-                const pageNum = i + 1;
-                // Only show a limited range of numbers if totalPages is huge
-                if (totalPages > 5 && Math.abs(currentPage - pageNum) > 1 && pageNum !== 1 && pageNum !== totalPages) {
-                    if (pageNum === 2 || pageNum === totalPages - 1) return <span key={pageNum} className="text-slate-600 px-1">...</span>;
-                    return null;
-                }
-
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${
-                      currentPage === pageNum 
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' 
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:bg-blue-600 hover:text-white disabled:opacity-20 disabled:hover:bg-white/5 transition-all"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
         </div>
       </div>
 

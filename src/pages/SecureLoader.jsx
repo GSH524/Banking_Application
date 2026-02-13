@@ -33,7 +33,7 @@ export default function SecureLoader({ message = "Establishing Secure Connection
         {/* Text Content */}
         <div className="flex flex-col items-center gap-3 text-center">
           <h3 className="text-xl md:text-2xl font-black text-white tracking-[0.2em] uppercase">
-            SRK Bank
+            THE VAJRA Bank
           </h3>
           
           {/* Status Badge */}
