@@ -1,4 +1,4 @@
-    import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
     import {
         BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
         PieChart, Pie, Cell, Legend, AreaChart, Area
@@ -11,7 +11,6 @@
         const { data } = useBankData();
         const { currentUser } = useCurrentUser();
 
-        // Helper: Map transaction reason to standardized category
         const mapCategory = (reason) => {
             const r = (reason || '').toLowerCase();
             if (r.includes('shop')) return 'Shopping';
@@ -27,7 +26,20 @@
             if (!data || !currentUser) return null;
             const userEmail = currentUser.email.toLowerCase();
             const userTxns = data.filter(d => d.email && d.email.toLowerCase() === userEmail);
-            if (userTxns.length === 0) return null;
+            
+            // --- MODIFIED SECTION: Handle Empty State for New Users ---
+            if (userTxns.length === 0) {
+                return {
+                    cashFlow: [],
+                    spending: [{ name: 'No Activity', value: 1 }], // Small slice for Pie visibility
+                    balance: [],
+                    creditUsed: currentUser.balance || 0,
+                    creditLimit: 50000, // Default limit for visualization
+                    upcoming: [],
+                    emiVsOthers: []
+                };
+            }
+            // --- END MODIFIED SECTION ---
 
             userTxns.sort((a, b) => new Date(a.raw['Transaction Date']) - new Date(b.raw['Transaction Date']));
 
@@ -144,7 +156,6 @@
         const totalSpend = metrics.spending.reduce((sum, item) => sum + item.value, 0);
         const PIE_COLORS = ['#3b82f6', '#1e3a8a', '#f97316', '#a21caf', '#db2777', '#4ade80'];
 
-        // Reusable Tailwind Component for Cards
         const AnalyticsCard = ({ title, children }) => (
             <div className="h-[350px] p-6 flex flex-col bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl hover:border-blue-500/40 transition-all duration-300 group">
                 <h4 className="text-white text-base font-bold text-center mb-5 tracking-tight group-hover:text-blue-400 transition-colors uppercase">{title}</h4>
@@ -191,14 +202,13 @@
                     </AnalyticsCard>
 
                     {/* 2. Spending Distribution */}
-                    {/* 2. Spending Distribution */}
                     <AnalyticsCard title="Spending Distribution">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
                                 <Pie
                                     data={metrics.spending}
                                     cx="50%"
-                                    cy="45%" // Adjusted upward to leave space for the legend
+                                    cy="45%"
                                     innerRadius={65}
                                     outerRadius={85}
                                     dataKey="value"
@@ -216,8 +226,6 @@
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-
-                                {/* Positioned Legend at the bottom for better horizontal alignment */}
                                 <Legend
                                     iconType="circle"
                                     layout="horizontal"
@@ -225,28 +233,18 @@
                                     align="center"
                                     wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
                                 />
-
-                                {/* Center Text: Corrected alignment for 'Total Outflow' */}
                                 <text x="50%" y="42%" textAnchor="middle" dominantBaseline="middle">
-                                    <tspan
-                                        x="50%"
-                                        dy="0"
-                                        className="fill-white text-lg font-black font-mono"
-                                    >
-                                        {formatCurrency(totalSpend)}
+                                    <tspan x="50%" dy="0" className="fill-white text-lg font-black font-mono">
+                                        {formatCurrency(totalSpend > 1 ? totalSpend : 0)}
                                     </tspan>
-                                    <tspan
-                                        x="50%"
-                                        dy="20"
-                                        className="fill-slate-500 text-[9px] font-bold uppercase tracking-widest"
-                                    >
+                                    <tspan x="50%" dy="20" className="fill-slate-500 text-[9px] font-bold uppercase tracking-widest">
                                         Total Outflow
                                     </tspan>
                                 </text>
                             </PieChart>
                         </ResponsiveContainer>
                     </AnalyticsCard>
-                    {/* 3. Credit Utilization Component */}
+
                     <CreditUtilization used={metrics.creditUsed} limit={metrics.creditLimit} />
 
                     {/* 4. Balance Trend */}

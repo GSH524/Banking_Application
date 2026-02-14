@@ -14,6 +14,7 @@ import SecureLoader from "./pages/SecureLoader"; // Ensure this path matches whe
 /* PROTECTED ROUTES WRAPPERS */
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import ProtectedPartnerRoute from "./components/ProtectedPartnerRoute";
+import TransferMoney from "./pages/user/TransferMoney";
 
 /* --- LAZY LOADED PAGES --- */
 
@@ -148,6 +149,7 @@ export default function App() {
                 <Route path="profile" element={<Profile />} />
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="loans" element={<Loans />} />
+                <Route path="transfer" element={<TransferMoney/>}/>
                 <Route path="cards" element={<Cards />} />
                 <Route path="feedback" element={<Feedback />} />
                 <Route path="payments" element={<Payments />} />

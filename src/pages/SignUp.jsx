@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { userAuth, userDB, userStorage } from '../firebaseUser';
+// Removed Storage imports
+import { userAuth, userDB } from '../firebaseUser';
 
 export default function SignUp() {
     const navigate = useNavigate();
@@ -11,23 +11,30 @@ export default function SignUp() {
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     
-    // File States
-    const [profileImg, setProfileImg] = useState(null);
-    const [idProofFile, setIdProofFile] = useState(null);
+    // File States (Storing the base64 string directly)
+    const [profileImgBase64, setProfileImgBase64] = useState(null);
+    const [idProofBase64, setIdProofBase64] = useState(null);
     const [previews, setPreviews] = useState({ profile: null, idProof: null });
 
     const [formData, setFormData] = useState({
-        // Step 1: Personal
         firstName: '', lastName: '', dob: '', gender: '', mobile: '', email: '',
         occupation: '', annualIncome: '', 
-        // Step 2: Address & ID
         address: '', city: '', state: '', pincode: '', 
         idProofType: '', idProofNumber: '',
-        // Step 3: Account & Security
         accountType: 'Savings', initialDeposit: '', 
         nomineeName: '', nomineeRelation: '',
         password: '', confirmPassword: ''
     });
+
+    // Helper to convert File to Base64 String
+    const fileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -35,25 +42,33 @@ export default function SignUp() {
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const { name, files } = e.target;
         const file = files[0];
         if (!file) return;
 
+        // Check file size (Firestore limit is 1MB total for the doc)
+        if (file.size > 500000) { // 500KB limit to be safe
+            alert("File is too large. Please upload a file under 500KB.");
+            return;
+        }
+
+        const base64 = await fileToBase64(file);
+
         if (name === "profileImg") {
-            setProfileImg(file);
-            setPreviews(prev => ({ ...prev, profile: URL.createObjectURL(file) }));
-        } else {
-            setIdProofFile(file);
-            // Preview logic for ID Document
+            setProfileImgBase64(base64);
+            setPreviews(prev => ({ ...prev, profile: base64 }));
+        } else if (name === "idProofFile") {
+            setIdProofBase64(base64);
             if (file.type.startsWith('image/')) {
-                setPreviews(prev => ({ ...prev, idProof: URL.createObjectURL(file) }));
+                setPreviews(prev => ({ ...prev, idProof: base64 }));
             } else {
-                setPreviews(prev => ({ ...prev, idProof: 'pdf' })); // Flag for PDF icon
+                setPreviews(prev => ({ ...prev, idProof: 'pdf' }));
             }
         }
     };
 
+    // ... (validateStep1, validateStep2, validateStep3, handleNext remain the same)
     const validateStep1 = () => {
         const newErrors = {};
         if (!formData.firstName.trim()) newErrors.firstName = 'First name required';
@@ -63,7 +78,7 @@ export default function SignUp() {
         if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = '10 digits required';
         if (!/^.+@.+\..+$/.test(formData.email)) newErrors.email = 'Valid email required';
         if (!formData.occupation) newErrors.occupation = 'Occupation required';
-        if (!profileImg) newErrors.profileImg = 'Profile photo required';
+        if (!profileImgBase64) newErrors.profileImg = 'Profile photo required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -76,7 +91,7 @@ export default function SignUp() {
         if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = '6 digits';
         if (!formData.idProofType) newErrors.idProofType = 'Select ID type';
         if (!formData.idProofNumber.trim()) newErrors.idProofNumber = 'ID number required';
-        if (!idProofFile) newErrors.idProofFile = 'Document upload required';
+        if (!idProofBase64) newErrors.idProofFile = 'Document upload required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -97,47 +112,53 @@ export default function SignUp() {
         if (isValid) setCurrentStep(prev => prev + 1);
     };
 
-    const uploadFile = async (file, path) => {
-        const storageRef = ref(userStorage, path);
-        await uploadBytes(storageRef, file);
-        return await getDownloadURL(storageRef);
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateStep3()) return;
         setSubmitting(true);
+        
         try {
+            // 1. Create Auth Account
             const userCredential = await createUserWithEmailAndPassword(userAuth, formData.email, formData.password);
             const user = userCredential.user;
 
-            const profileUrl = await uploadFile(profileImg, `users/${user.uid}/profile.jpg`);
-            const idProofUrl = await uploadFile(idProofFile, `users/${user.uid}/id_doc`);
-
+            // 2. Prepare Firestore Data (Files are now Base64 strings)
+            const { password, confirmPassword, ...profileData } = formData;
             const userProfile = { 
-                ...formData, 
-                profilePic: profileUrl, 
-                idProofDoc: idProofUrl,
+                ...profileData, 
+                uid: user.uid,
+                profilePic: profileImgBase64, // Stored as Base64 string
+                idProofDoc: idProofBase64,    // Stored as Base64 string
                 balance: Number(formData.initialDeposit), 
                 status: "pending", 
                 createdAt: serverTimestamp() 
             };
-            delete userProfile.password; delete userProfile.confirmPassword;
 
+            // 3. Save User Doc
             await setDoc(doc(userDB, 'users', user.uid), userProfile);
+
+            // 4. Create Notification
             await addDoc(collection(userDB, 'notifications'), {
-                type: 'new_user', message: `New KYC: ${userProfile.email}`,
-                userId: user.uid, read: false, createdAt: serverTimestamp()
+                type: 'new_user', 
+                message: `New KYC: ${userProfile.email}`,
+                userId: user.uid, 
+                read: false, 
+                createdAt: serverTimestamp()
             });
 
             alert('Registration complete! Awaiting admin approval.');
             navigate('/login');
         } catch (error) {
+            console.error("Signup error:", error);
             setErrors({ general: error.message });
             setSubmitting(false);
         }
     };
 
+    // ... (The JSX remains mostly the same, ensuring you reference current state)
+    // For brevity, I'll keep the return structure similar but noted the file changes above.
+    
+    // UI Classes
     const inputClass = "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm";
     const labelClass = "block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider";
     const errorClass = "text-[10px] text-red-500 mt-1 block font-medium";
@@ -146,14 +167,12 @@ export default function SignUp() {
         <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 font-sans">
             <div className="max-w-2xl w-full bg-slate-900 rounded-[2rem] border border-white/5 shadow-2xl overflow-hidden">
                 <div className="p-8 md:p-12">
-                    
-                    {/* Header */}
                     <div className="text-center mb-10">
                         <h1 className="text-3xl font-black text-white mb-2">Create Your Account</h1>
                         <p className="text-slate-400">Join VajraBank for secure and smart banking</p>
                     </div>
 
-                    {/* Progress Bar with Labels */}
+                    {/* Stepper UI */}
                     <div className="relative flex justify-between mb-12 max-w-sm mx-auto">
                         <div className="absolute top-5 left-0 w-full h-0.5 bg-slate-800 z-0" />
                         {[1, 2, 3].map(step => (
@@ -173,8 +192,6 @@ export default function SignUp() {
                     </div>
 
                     <form onSubmit={currentStep === 3 ? handleSubmit : (e) => e.preventDefault()}>
-                        
-                        {/* Step 1: Personal */}
                         {currentStep === 1 && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                                 <div className="flex flex-col items-center mb-4">
@@ -184,6 +201,7 @@ export default function SignUp() {
                                     </div>
                                     {errors.profileImg && <span className={errorClass}>{errors.profileImg}</span>}
                                 </div>
+                                {/* Rest of Step 1 Inputs... */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div><label className={labelClass}>First Name *</label><input name="firstName" value={formData.firstName} onChange={handleChange} className={inputClass} placeholder="John" />{errors.firstName && <span className={errorClass}>{errors.firstName}</span>}</div>
                                     <div><label className={labelClass}>Last Name *</label><input name="lastName" value={formData.lastName} onChange={handleChange} className={inputClass} placeholder="Doe" />{errors.lastName && <span className={errorClass}>{errors.lastName}</span>}</div>
@@ -212,7 +230,6 @@ export default function SignUp() {
                             </div>
                         )}
 
-                        {/* Step 2: Identity */}
                         {currentStep === 2 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4">
                                 <div className="md:col-span-2"><label className={labelClass}>Residential Address *</label><input name="address" value={formData.address} onChange={handleChange} className={inputClass} />{errors.address && <span className={errorClass}>{errors.address}</span>}</div>
@@ -237,7 +254,6 @@ export default function SignUp() {
                                             {errors.idProofFile && <span className={errorClass}>{errors.idProofFile}</span>}
                                         </div>
 
-                                        {/* ID PREVIEW AREA */}
                                         {previews.idProof && (
                                             <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl border border-slate-700 animate-in fade-in zoom-in-95">
                                                 <div className="w-16 h-16 rounded bg-slate-900 border border-slate-600 flex items-center justify-center overflow-hidden">
@@ -248,10 +264,10 @@ export default function SignUp() {
                                                     )}
                                                 </div>
                                                 <div className="flex-1 overflow-hidden">
-                                                    <p className="text-xs font-bold text-white truncate">{idProofFile?.name}</p>
-                                                    <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Ready for upload</p>
+                                                    <p className="text-xs font-bold text-white truncate">Document Loaded</p>
+                                                    <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Firestore Ready</p>
                                                 </div>
-                                                <button type="button" onClick={() => { setIdProofFile(null); setPreviews(p => ({...p, idProof: null})); }} className="text-[10px] text-red-400 font-bold hover:underline">REMOVE</button>
+                                                <button type="button" onClick={() => { setIdProofBase64(null); setPreviews(p => ({...p, idProof: null})); }} className="text-[10px] text-red-400 font-bold hover:underline">REMOVE</button>
                                             </div>
                                         )}
                                     </div>
@@ -259,7 +275,6 @@ export default function SignUp() {
                             </div>
                         )}
 
-                        {/* Step 3: Account */}
                         {currentStep === 3 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4">
                                 <div><label className={labelClass}>Account Type</label>
@@ -278,11 +293,11 @@ export default function SignUp() {
 
                                 <div><label className={labelClass}>Create Password *</label><input type="password" name="password" value={formData.password} onChange={handleChange} className={inputClass} />{errors.password && <span className={errorClass}>{errors.password}</span>}</div>
                                 <div><label className={labelClass}>Confirm Password *</label><input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className={inputClass} />{errors.confirmPassword && <span className={errorClass}>{errors.confirmPassword}</span>}</div>
+                                
                                 {errors.general && <div className="md:col-span-2 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs text-center rounded-lg">{errors.general}</div>}
                             </div>
                         )}
 
-                        {/* Navigation Buttons */}
                         <div className="mt-10 flex gap-4">
                             {currentStep > 1 && (
                                 <button type="button" onClick={() => setCurrentStep(prev => prev - 1)} className="flex-1 px-6 py-3 rounded-xl border border-slate-700 text-slate-300 font-bold hover:bg-slate-800 transition-colors text-sm">
