@@ -15,7 +15,8 @@ import {
     serverTimestamp,
     orderBy,
     limit,
-    getDoc
+    getDoc,
+    increment
 } from "firebase/firestore";
 import { userDB } from "../firebaseUser";
 
@@ -234,9 +235,18 @@ export const adService = {
      * 8. TRACK CLICK
      */
     trackClick: async (adId) => {
-        console.log("Tracking click for", adId);
-        // Implement increment logic if needed
-        return { success: true };
+        try {
+            if (!adId) return { success: false, error: 'missing-adId' };
+            // Atomically increment `clicks` counter on the ad document
+            await updateDoc(doc(userDB, "ads", adId), {
+                clicks: increment(1),
+                lastClickAt: serverTimestamp()
+            });
+            return { success: true };
+        } catch (err) {
+            console.error('Error tracking ad click:', err);
+            return { success: false, error: err };
+        }
     }
 };
 

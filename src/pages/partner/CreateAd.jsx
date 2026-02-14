@@ -71,6 +71,7 @@ export default function CreateAd() {
                 budget: parseFloat(formData.budget),
                 placements: placements,
                 status: "PENDING",
+                clicks: 0, // initialize click counter
                 createdAt: serverTimestamp()
             };
 

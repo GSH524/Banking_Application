@@ -1,21 +1,33 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { useAuth } from "../../context/AuthContext";
 import UserAnalytics from '../../components/user/UserAnalytics';
-import { ArrowUpRight, Plus, ShieldCheck, Wallet, GraphUpArrow, X, CheckCircle, ArrowDownLeft, CreditCard2Front, Activity } from 'react-bootstrap-icons';
-import { NavLink } from 'react-router-dom';
+import RecommendationSection from "../../pages/user/Recommendations";
+import { 
+  ArrowUpRight, Plus, ShieldCheck, Wallet, 
+  CheckCircle, ArrowDownLeft, Activity,
+  PersonBadge, GeoAlt, Telephone, CalendarEvent, Hash
+} from 'react-bootstrap-icons';
+
+// Firebase Imports
+import { userDB } from "../../firebaseUser";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 export default function UserDashboard() {
-  const { currentUser, loading: authLoading } = useCurrentUser();
-  const [bankData, setBankData] = useState([]);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [showModal, setShowModal] = useState(null);
-  const [toast, setToast] = useState(null);
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth(); 
   
-  // NEW STATE FOR AI PREDICTION
-  const [riskLevel, setRiskLevel] = useState("Analyzing...");
-  const [rawLatestRecord, setRawLatestRecord] = useState(null); // Keep the raw data to send to backend
+  const [bankData, setBankData] = useState([]);
+  const [firebaseTxns, setFirebaseTxns] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
-  // 1. FETCH BANK DATA FROM PUBLIC FOLDER
+  // AI Risk Prediction States
+  const [riskLevel, setRiskLevel] = useState("Analyzing...");
+  const [displayRisk, setDisplayRisk] = useState("Analyzing...");
+  const [rawLatestRecord, setRawLatestRecord] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // 1. FETCH STATIC BANK DATA (Legacy Support)
   useEffect(() => {
     fetch('/bankData.json')
       .then((res) => res.json())
@@ -29,55 +41,95 @@ export default function UserDashboard() {
       });
   }, []);
 
-  // 2. FILTER DATA & GET RAW RECORD
-  const userData = useMemo(() => {
-    if (!currentUser || bankData.length === 0) return null;
-    
-    const userRecords = bankData.filter(
-      (item) => item.Email?.toLowerCase() === currentUser.email?.toLowerCase()
+  // 2. FETCH REAL-TIME FIREBASE TRANSACTIONS
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const q = query(
+      collection(userDB, "transfer"),
+      where("senderEmail", "==", user.email.toLowerCase())
     );
 
-    if (userRecords.length === 0) return null;
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const txns = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: data.transactionId || doc.id,
+          type: "Transfer",
+          amount: data.amount,
+          date: data.timestamp?.toDate().toLocaleDateString() || new Date().toLocaleDateString(),
+          reason: data.reason || "Fund Transfer",
+          isFirebase: true 
+        };
+      });
+      setFirebaseTxns(txns);
+    });
 
-    const latestRecord = userRecords[0];
-    setRawLatestRecord(latestRecord); // Save this to send to Python
+    return () => unsubscribe();
+  }, [user]);
 
-    const uniqueTransactions = [];
-    const seenTxnIds = new Set();
+  // 3. MERGED DATA PROCESSING (Legacy JSON + Firebase Auth/Firestore)
+  const userData = useMemo(() => {
+    if (!user || (bankData.length === 0 && dataLoading)) return null;
+    
+    // Check if user exists in legacy JSON
+    const legacyRecord = bankData.find(
+      (item) => item.Email?.toLowerCase() === user.email?.toLowerCase()
+    );
 
-    userRecords.forEach(record => {
-        const txnId = record["TransactionID"];
-        if (txnId && !seenTxnIds.has(txnId)) {
-            seenTxnIds.add(txnId);
-            uniqueTransactions.push({
-                id: txnId,
+    // Merge: Use Legacy JSON if found, otherwise use Firestore data from AuthContext
+    const source = legacyRecord || user;
+
+    // Handle Transaction Merging
+    const staticTransactions = [];
+    if (legacyRecord) {
+        bankData.filter(r => r.Email === user.email).forEach(record => {
+            staticTransactions.push({
+                id: record["TransactionID"],
                 type: record["Transaction Type"],
                 amount: record["Transaction Amount"],
                 date: record["Transaction Date"],
                 reason: record["Transaction_Reason"] || record["Transaction Type"]
             });
-        }
-    });
+        });
+    }
 
-    uniqueTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const combinedTransactions = [...firebaseTxns, ...staticTransactions];
+    combinedTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Set raw record for AI Prediction (only if legacy data exists for the model)
+    if (legacyRecord && (!rawLatestRecord || rawLatestRecord["Customer ID"] !== legacyRecord["Customer ID"])) {
+        setRawLatestRecord(legacyRecord);
+    }
 
     return {
-      fullName: `${latestRecord["First Name"]} ${latestRecord["Last Name"]}`,
-      customerId: latestRecord["Customer ID"],
-      accountNumber: latestRecord["Account_Number"],
-      balance: latestRecord["Account Balance"],
-      accountType: latestRecord["Account Type"],
-      activeStatus: latestRecord["ActiveStatus"],
-      cibil: latestRecord["CIBIL_Score"],
-      panCard: latestRecord["PAN_Card"], 
-      transactions: uniqueTransactions
+      firstName: source.firstName || source["First Name"] || "User",
+      lastName: source.lastName || source["Last Name"] || "",
+      fullName: source.displayName || `${source["First Name"]} ${source["Last Name"]}`,
+      age: source.age || source["Age"] || "N/A",
+      gender: source.gender || source["Gender"] || "N/A",
+      address: source.address || source["Address"] || "Update your address",
+      contact: source.mobile || source["Contact Number"] || "N/A",
+      email: source.email || source["Email"],
+      dateOpened: source.dateOpened || source["Date Of Account Opening"] || "Recent",
+      branchId: source.branchId || source["Branch ID"] || "VAJRA-Main",
+      ifsc: "VAJR000524",
+      customerId: source.uid || source["Customer ID"],
+      accountNumber: source.accountNumber || source["Account_Number"] || "Pending KYC",
+      balance: source.balance !== undefined ? source.balance : source["Account Balance"],
+      accountType: source.accountType || source["Account Type"] || "Savings",
+      status: source.status || source["ActiveStatus"] || "Active",
+      cibil: source.cibil || source["CIBIL_Score"] || 750,
+      panCard: source.idProofNumber || source["PAN_Card"] || "N/A",
+      profilePic: source.profilePic || null, // For Base64 images from Firestore
+      transactions: combinedTransactions
     };
-  }, [bankData, currentUser]);
+  }, [bankData, user, firebaseTxns, dataLoading]);
 
-  // 3. SEND DATA TO PYTHON BACKEND FOR AI PREDICTION
+  // 4. AI RISK LOGIC (Keep existing)
   useEffect(() => {
     if (rawLatestRecord) {
-      // Send the exact row to your FastAPI backend
+      setIsAnalyzing(true);
       fetch("http://localhost:8000/api/predict-risk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,233 +137,159 @@ export default function UserDashboard() {
       })
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
-          setRiskLevel(data.predictedRisk);
-        } else {
-          setRiskLevel("Error calculating");
-        }
+        if (data.success) setRiskLevel(data.predictedRisk);
+        else setRiskLevel("Low"); // Default for new users
       })
-      .catch(err => {
-        console.error("Failed to fetch ML prediction:", err);
-        setRiskLevel("Server Offline");
-      });
+      .catch(() => setRiskLevel("Offline"));
+
+      const timer = setTimeout(() => setIsAnalyzing(false), 3000);
+      return () => clearTimeout(timer);
+    } else if (user) {
+        setRiskLevel("Safe"); // New users start with a clean slate
+        setIsAnalyzing(false);
     }
-  }, [rawLatestRecord]);
+  }, [rawLatestRecord, user]);
 
-  const handleAction = (type) => {
-    if (type === 'ACCOUNT_REQ') {
-      showToast("New Account Request submitted to Admin.", "success");
-    } else {
-      setShowModal(type);
-    }
-  };
+  useEffect(() => {
+    if (!isAnalyzing) setDisplayRisk(riskLevel);
+    else setDisplayRisk("Analyzing...");
+  }, [isAnalyzing, riskLevel]);
 
-  const showToast = (msg, type) => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const closeModal = () => setShowModal(null);
-
-  if (authLoading || dataLoading) {
+  if (authLoading || dataLoading || !userData) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-950 text-slate-400">
-        <div className="animate-pulse font-mono tracking-widest uppercase text-sm">Synchronizing Secure Data...</div>
-      </div>
-    );
-  }
-
-  if (!userData) {
-    return (
-        <div className="p-20 text-center text-slate-500">
-            User profile not found in bank records.
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-indigo-500"></div>
+          <p className="animate-pulse font-mono text-xs uppercase tracking-widest">Synchronizing Vault...</p>
         </div>
+      </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8">
       
-      {toast && (
-        <div className="fixed top-5 right-5 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl z-[1000] flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-          <CheckCircle size={20} />
-          <span className="font-medium">{toast.msg}</span>
+      {/* HEADER WITH PROFILE PIC SUPPORT */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+            {userData.profilePic ? (
+                <img src={userData.profilePic} alt="Profile" className="w-16 h-16 rounded-2xl object-cover border-2 border-indigo-500/50 shadow-lg shadow-indigo-500/20" />
+            ) : (
+                <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-2xl">
+                    {userData.firstName[0]}
+                </div>
+            )}
+            <div>
+                <h1 className="text-3xl font-bold text-white uppercase tracking-tight">
+                    Hello, {userData.firstName}
+                </h1>
+                <p className="text-slate-500 font-mono text-sm tracking-widest">ID: {userData.customerId}</p>
+            </div>
         </div>
-      )}
-
-      {/* HEADER */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-          Hello, {userData.fullName.split(' ')[0]} <span className="animate-bounce">👋</span>
-        </h1>
-        <p className="text-slate-400 mt-1">Managed via ID: {userData.customerId}</p>
+        <div className="flex gap-3">
+             <button onClick={() => navigate('/user/transfer')} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl transition-all font-bold text-sm shadow-lg">
+                <Plus size={20} /> Transfer
+            </button>
+        </div>
       </div>
 
-      {/* ROW 1: STATS GRID */}
+      {/* STATS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        
-        {/* BALANCE CARD (Takes 2 columns now) */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl shadow-xl shadow-blue-900/20 relative overflow-hidden">
-          <div className="flex justify-between items-start relative z-10">
-            <div>
-              <p className="text-blue-100 text-sm font-medium opacity-80">Account Balance</p>
-              <h2 className="text-3xl font-bold text-white mt-1">₹{userData.balance.toLocaleString()}</h2>
-            </div>
-            <Wallet size={24} className="text-blue-200 opacity-50" />
+        <div className="lg:col-span-2 bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-[2rem] shadow-xl relative overflow-hidden">
+          <div className="relative z-10">
+            <p className="text-indigo-100/70 text-xs font-bold uppercase tracking-widest">Total Balance</p>
+            <h2 className="text-4xl font-black text-white mt-2">₹{userData.balance?.toLocaleString()}</h2>
+            <p className="mt-4 text-white/50 font-mono text-xs tracking-widest">{userData.accountNumber}</p>
           </div>
-          <div className="mt-6 text-blue-100/60 font-mono tracking-widest text-sm relative z-10">
-            {userData.accountNumber}
-          </div>
-          <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+          <Wallet size={100} className="absolute -bottom-6 -right-6 text-white/10" />
         </div>
 
-        {/* AI RISK PREDICITON CARD (NEW!) */}
-        <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="flex justify-between items-start relative z-10">
-            <div>
-              <p className="text-purple-400 text-sm font-medium tracking-wider flex items-center gap-2">
-                <Activity size={14} className="animate-pulse" /> AI Profile Risk
-              </p>
-              <h3 className={`text-2xl font-black mt-1 ${
-                riskLevel === 'High' ? 'text-rose-500' : riskLevel === 'Low' ? 'text-emerald-400' : 'text-amber-400'
-              }`}>
-                {riskLevel}
-              </h3>
-            </div>
-          </div>
-          <p className="text-slate-500 text-[10px] mt-4 font-mono uppercase tracking-widest relative z-10">Gaussian Navie Bayes</p>
+        <div className="bg-slate-900 border border-white/5 p-6 rounded-[2rem]">
+          <p className="text-purple-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+            <Activity className={isAnalyzing ? "animate-spin" : ""} size={14} /> Risk Profile
+          </p>
+          <h3 className={`text-2xl font-black mt-2 ${displayRisk === 'High' ? 'text-rose-500' : 'text-emerald-400'}`}>
+            {displayRisk}
+          </h3>
+          <p className="text-[10px] text-slate-500 mt-2 uppercase font-bold tracking-tighter">AI Analysis Active</p>
         </div>
 
-        {/* CIBIL SCORE CARD */}
-        <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-slate-400 text-sm font-medium">CIBIL Score</p>
-              <h3 className="text-2xl font-bold text-white mt-1">
-                {Math.round(userData.cibil)}
-              </h3>
-            </div>
-            <div className="bg-blue-500/10 p-2 rounded-lg text-blue-500">
-              <ShieldCheck size={20} />
-            </div>
-          </div>
-          <div className="w-full bg-slate-800 h-1.5 mt-4 rounded-full">
-             <div className="bg-blue-500 h-full rounded-full" style={{ width: `${(userData.cibil / 900) * 100}%` }}></div>
+        <div className="bg-slate-900 border border-white/5 p-6 rounded-[2rem]">
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Trust Score</p>
+          <h3 className="text-2xl font-black text-white mt-2">{Math.round(userData.cibil)}</h3>
+          <div className="w-full bg-slate-800 h-1 mt-4 rounded-full">
+            <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${(userData.cibil / 900) * 100}%` }}></div>
           </div>
         </div>
 
-        {/* ACCOUNT STATUS */}
-        <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-          <p className="text-slate-400 text-sm font-medium">Account Status</p>
-          <h3 className="text-2xl font-bold text-white mt-1">{userData.activeStatus}</h3>
-          <span className={`inline-block mt-3 px-3 py-1 rounded-full text-[10px] font-bold ${
-            userData.activeStatus === 'Active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
-          }`}>
-            {userData.activeStatus === 'Active' ? '● Fully Operational' : '● Restricted'}
+        <div className="bg-slate-900 border border-white/5 p-6 rounded-[2rem] flex flex-col items-center justify-center">
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Status</p>
+          <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-full uppercase tracking-widest border border-emerald-500/20">
+            {userData.status}
           </span>
+          <ShieldCheck size={24} className="mt-3 text-emerald-500 opacity-50" />
         </div>
-
       </div>
 
-      {/* ROW 2: MAIN CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* LEFT COL: ACCOUNT DETAILS */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 font-semibold text-white bg-slate-800/50 uppercase text-[10px] tracking-widest">
-              Account Metadata
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm">Type</span>
-                <span className="text-white font-medium">{userData.accountType}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm">Customer ID</span>
-                <span className="text-white font-mono text-xs">{userData.customerId}</span>
-              </div>
-              
-              {/* PAN CARD DISPLAY */}
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm flex items-center gap-2">
-                    <CreditCard2Front size={14} /> PAN Number
-                </span>
-                <span className="text-blue-400 font-mono text-xs tracking-wider font-bold bg-blue-500/10 px-2 py-1 rounded">
-                    {userData.panCard}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm">Primary Branch</span>
-                <span className="text-white font-medium text-right">Ahmedabad Central<br/><small className="text-slate-500">Code: GJ13036</small></span>
-              </div>
+        {/* Profile Details */}
+        <div className="lg:col-span-1">
+          <div className="bg-slate-900 border border-white/5 rounded-[2rem] p-6">
+            <h4 className="text-white font-bold mb-6 uppercase text-[10px] tracking-[0.2em] opacity-40 flex items-center gap-2">
+              <PersonBadge size={14}/> Verified Credentials
+            </h4>
+            <div className="space-y-4 text-xs">
+              <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-slate-500 uppercase">Age / Gender</span><span className="text-white font-bold">{userData.age} / {userData.gender}</span></div>
+              <div className="flex flex-col border-b border-white/5 pb-2 gap-1"><span className="text-slate-500 uppercase flex items-center gap-1"><GeoAlt size={10}/> Location</span><span className="text-white leading-relaxed">{userData.address}</span></div>
+              <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-slate-500 uppercase">Phone</span><span className="text-white">{userData.contact}</span></div>
+              <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-slate-500 uppercase">Account Type</span><span className="text-white">{userData.accountType}</span></div>
+              <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-slate-500 uppercase">PAN / ID</span><span className="text-indigo-400 font-mono font-bold">{userData.panCard}</span></div>
+              <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-slate-500 uppercase">IFSC</span><span className="text-white font-mono">{userData.ifsc}</span></div>
+              <div className="flex justify-between pt-1"><span className="text-slate-500 uppercase">Member Since</span><span className="text-white">{userData.dateOpened}</span></div>
             </div>
           </div>
-
-          <button 
-            onClick={() => handleAction('transfer')}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20 font-bold"
-          >
-            <Plus size={24} /> New Transaction
-          </button>
         </div>
 
-        {/* RIGHT COL: RECENT TRANSACTIONS */}
+        {/* Transactions */}
         <div className="lg:col-span-2">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/50">
-              <span className="font-semibold text-white">Transaction History</span>
-              <NavLink to="/user/transactions" className="text-blue-400 text-sm hover:underline">Full Statement</NavLink>
+          <div className="bg-slate-900 border border-white/5 rounded-[2rem] overflow-hidden">
+            <div className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+              <span className="font-black text-white uppercase text-xs tracking-widest">Recent Activity</span>
+              <NavLink to="/user/transactions" className="text-indigo-400 text-[10px] hover:underline uppercase font-bold tracking-widest">Statements</NavLink>
             </div>
-
-            <div className="divide-y divide-slate-800 max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="divide-y divide-white/5 max-h-[400px] overflow-y-auto custom-scrollbar">
               {userData.transactions.length > 0 ? (
-                userData.transactions.slice(0, 1).map((txn, i) => (
-                  <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-slate-800/30 transition group">
+                userData.transactions.map((txn, i) => (
+                  <div key={i} className="px-8 py-5 flex items-center justify-between hover:bg-white/5 transition">
                     <div className="flex items-center gap-4">
-                      <div className={`p-2.5 rounded-xl transition-colors ${
-                        txn.type === 'Deposit' ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500/20' : 'bg-rose-500/10 text-rose-500 group-hover:bg-rose-500/20'
-                      }`}>
-                        {txn.type === 'Deposit' ? <ArrowDownLeft size={18}/> : <ArrowUpRight size={18}/>}
+                      <div className={`p-3 rounded-xl ${txn.type === 'Deposit' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                        {txn.type === 'Deposit' ? <ArrowDownLeft size={20}/> : <ArrowUpRight size={20}/>}
                       </div>
                       <div>
-                        <p className="text-white font-medium leading-tight">{txn.reason || txn.type}</p>
-                        <p className="text-slate-500 text-xs mt-1">{txn.date}</p>
+                        <p className="text-white text-sm font-bold">{txn.reason}</p>
+                        <p className="text-slate-500 text-[10px] mt-0.5 uppercase tracking-tighter">{txn.date} {txn.isFirebase && "• Secure"}</p>
                       </div>
                     </div>
-                    <div className={`font-mono font-bold ${txn.type === 'Deposit' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {txn.type === 'Deposit' ? '+' : '-'}₹{txn.amount.toLocaleString()}
+                    <div className={`font-mono font-bold text-sm ${txn.type === 'Deposit' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {txn.type === 'Deposit' ? '+' : '-'}₹{txn.amount?.toLocaleString()}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="p-10 text-center text-slate-500">No transaction logs available.</div>
+                <div className="p-20 text-center text-slate-600 font-mono text-xs uppercase tracking-widest">No transaction history detected</div>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ANALYTICS SECTION */}
+      <div className="mt-8">
+        <RecommendationSection riskLevel={displayRisk} />
+      </div>
+
       <div className="mt-8">
         <UserAnalytics />
       </div>
-
-      {/* MODAL */}
-      {showModal === 'transfer' && (
-         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-[999] p-4 animate-in fade-in duration-200">
-             <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-8 shadow-2xl animate-in zoom-in duration-200">
-                <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-bold text-white">Transfer</h3>
-                    <X className="cursor-pointer text-slate-400 hover:text-white" onClick={closeModal} />
-                </div>
-                <input type="number" placeholder="Amount" className="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl mb-4 text-white focus:outline-none focus:border-blue-500 transition" />
-                <button onClick={() => { closeModal(); showToast("Transfer Sent!", "success"); }} className="w-full bg-blue-600 hover:bg-blue-500 p-4 rounded-xl font-bold text-white transition shadow-lg shadow-blue-900/20">Send Money</button>
-             </div>
-         </div>
-      )}
     </div>
   );
 }
